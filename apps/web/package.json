@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@ets2/shared": "workspace:*",
-    "@supabase/ssr": "^0.10.2",
+    "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.105.3",
     "leaflet": "^1.9.4",
     "next": "^15.0.3",
