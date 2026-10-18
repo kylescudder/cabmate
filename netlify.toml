@@ -1,5 +1,5 @@
 [build]
-  command = "bun install && bun run --filter @ets2/web build"
+  command = "bun install --frozen-lockfile && bun run --filter @ets2/web build"
   publish = "apps/web/.next"
 
 [build.environment]
