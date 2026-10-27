@@ -9,8 +9,10 @@
   "branch": "main",
   "compose_file": "compose.yaml",
   "app_dir": "ets2-data-dashboard",
+  "public_status": true,
   "backups": true,
   "bind_source_digest": true,
+  "require_host": true,
   "installed_hooks": true,
   "enabled": false
 }

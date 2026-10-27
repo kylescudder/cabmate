@@ -22,6 +22,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 | `compose.yaml` | `/Users/kyle/platform/apps/ets2-data-dashboard/compose.yaml` |
 | `deploy/hooks.py` | `deploy-core/app_hooks/ets2-data-dashboard/hooks.py` (tested service release) |
 | `deploy/registry-entry.json` | entry in `deploy-core/config/herman.json` and the installed `apps.json` (starts `enabled: false`) |
+| `deploy/compose.deploy-hook.yaml` | `/Users/kyle/platform/apps/ets2-data-dashboard/deploy/compose.deploy-hook.yaml` (queue-only webhook receiver) |
 
 ## One-time setup
 
@@ -78,7 +79,18 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
   the login page renders, read APIs and ingest refuse anonymous requests, and
   Clerk/origin configuration is present.
 
-A first deploy can be driven manually:
+## Automatic deploys
+
+Every push to `main` builds the image, then the `deploy` job in `release.yml` posts an HMAC-signed
+request for that digest to `https://deploy-ets2.kylescudder.co.uk/hooks/ets2-data-dashboard`, behind a
+Cloudflare Access service-token policy. The queue-only receiver (`deploy-receivers`, no Docker socket, no
+database) writes it to `deploy-spool/requests`; deploy-core then verifies the attestation, runs the hooks above and
+publishes `state/public/deployment.json`, which the workflow polls until the host reports that exact image and
+the site serves the commit in `X-ETS2-Revision`. The job runs in the main-only `production` environment
+(`CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, `DEPLOY_WEBHOOK_SECRET`) and only when the repository variable
+`DEPLOY_ENABLED` is `true`. `ETS2_BASE_URL` is `https://ets2.kylescudder.co.uk`.
+
+A deploy can also be driven manually:
 
 ```sh
 python3 -B /Users/kyle/platform/deploy-core/current/deploy_service.py \
