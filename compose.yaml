@@ -1,0 +1,38 @@
+name: ets2-data-dashboard
+services:
+  web:
+    image: ${ETS2_IMAGE:?Set the verified immutable release image digest}
+    user: '501:20'
+    init: true
+    restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp:size=32m,mode=1777]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 384m
+    cpus: 1
+    pids_limit: 128
+    env_file: app.env
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgres://ets2_runtime@postgres:5432/ets2
+      DATABASE_PASSWORD_FILE: /run/secrets/database_password
+    secrets: [database_password]
+    networks:
+      platform-web:
+        aliases: [ets2-data-dashboard]
+      platform-db: {}
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+secrets:
+  database_password:
+    file: ../../projects/ets2/runtime-password
+networks:
+  platform-web:
+    external: true
+  platform-db:
+    external: true

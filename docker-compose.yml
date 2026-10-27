@@ -1,15 +1,18 @@
+# Disposable local development database only. Herman uses shared platform PostgreSQL.
+name: ets2-development
 services:
   db:
-    image: timescale/timescaledb:latest-pg16
-    restart: unless-stopped
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: ets2
       POSTGRES_PASSWORD: ets2
       POSTGRES_DB: ets2
-    ports:
-      - "5432:5432"
-    volumes:
-      - ets2_pg:/var/lib/postgresql/data
-
+    ports: ["127.0.0.1:5439:5432"]
+    volumes: [ets2_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ets2"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 volumes:
   ets2_pg:

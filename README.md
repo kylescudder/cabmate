@@ -1,85 +1,77 @@
 # ETS2 Friends Tracker
 
-A small cross-platform stack that ingests Euro Truck Simulator 2 telemetry from
-players, stores it in TimescaleDB, and shows live + historical dashboards so you
-can see what your friends are hauling.
+Ingests Euro Truck Simulator 2 telemetry from friends' PCs, stores it in
+PostgreSQL, and shows live + historical dashboards so you can see what
+everyone is hauling.
 
 ## Architecture
 
 ```
 apps/client     Windows telemetry agent, reads scs-sdk-plugin shared memory
-apps/api        Fastify + Postgres/Timescale + WebSocket fan-out
-apps/web        Next.js dashboard (live cards, per-driver history, leaderboard)
-packages/shared Zod schemas / TS types shared by all three
+apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — dashboard UI
+                and the JSON API, served by one Bun process (server/index.ts)
+packages/shared Zod schemas / TS types for the ingest wire format
 ```
 
-The simulator under `apps/api` (`bun run simulate`) POSTs to the same
-`/api/ingest` endpoint the real client uses, so the DB and dashboard can be
-developed without the game running.
+```
+agent ─► POST /api/ingest (Bearer <driver api key>) ─► Postgres
+                                                        └─ NOTIFY ─► WS /ws ─► browser (Clerk session)
+```
+
+`scripts/simulate.ts` posts synthetic samples to the same ingest endpoint, so
+the dashboard can be developed without the game running.
 
 ## Quick start
 
 ```bash
-# 1. install
+cp .env.example .env          # add your Clerk dev keys
 bun install
-
-# 2. start postgres+timescale
-bun run db:up
-
-# 3. run migrations + seed (5 drivers, 7 days of fake history)
+bun run db:up                 # disposable Postgres on 127.0.0.1:5439
 bun run db:migrate
-bun run db:seed
-
-# 4. start the API (terminal A)
-bun run dev:api
-
-# 5. start the web dashboard (terminal B)
-bun run dev:web
-# -> http://localhost:3000
-
-# 6. start the live simulator (terminal C)
-bun run simulate
+bun run dev                   # http://localhost:3000
+# sign in, open /profile, copy your agent key, then:
+AGENT_API_KEY=<key> bun run simulate
 ```
 
-You should see 4 drivers driving across Europe in real time, with cards updating
-once a second on the home page.
+Checks: `bun run test` (needs a migrated database — uses `TEST_DATABASE_URL`
+or `DATABASE_URL`, and **truncates it**), `bun run typecheck`, `bun run build`.
 
 ## Identity
 
-Each driver has an `api_key` in the `users` table. The telemetry client (or
-simulator) sends that key with every batch, so the API knows whose data it is.
-Demo keys: `demo-key-mike`, `demo-key-sarah`, `demo-key-tom`, `demo-key-lena`,
-`demo-key-jonas`.
+Dashboard users sign in with Clerk. On first visit each Clerk user gets a
+`users` row with a generated agent `api_key`; the profile page lets them pick
+a username and rotate the key. The agent sends that key as
+`Authorization: Bearer <key>` with every batch.
 
 ## Data model
 
-* `users` - one row per friend (name, display_name, api_key, avatar)
-* `sessions` - one driving session (truck make/model, start/end)
-* `telemetry` - **TimescaleDB hypertable**, one row per sample (~1 Hz)
+Drizzle schema in `apps/web/server/schema.ts`, migrations in `apps/web/drizzle/`
+(`bun run db:generate` after schema changes).
 
-`telemetry` keeps the raw stream for live + recent views; long-term dashboards
-use `time_bucket` rollups (see `/api/drivers/:name/history`).
+* `users`, `vehicles`, `sessions`, `jobs`
+* `telemetry` — raw ~1 Hz samples, keyed by `(session_id, time)` so replayed
+  batches are ignored
+* `telemetry_rollup_minute` — per-minute rollups of telemetry older than 14
+  days (`apps/web/server/rollup.ts`)
 
 ## Real client (Windows)
 
 `apps/client` reads the `Local\SCSTelemetry` shared memory block exposed by
-[scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin). Windows-only;
-Linux/Proton is not supported.
+[scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin). Windows-only.
 
 1. Install scs-sdk-plugin into the ETS2/ATS `bin/win_x64/plugins/` folder.
-2. Sign in to the dashboard, open `/profile`, and copy the **config.json
-   snippet** from the *Agent setup* panel into `%USERPROFILE%\.ets2-tracker\config.json`.
-   It looks like:
+2. Sign in, open `/profile`, and copy the **config.json snippet** from the
+   *Agent setup* panel into `%USERPROFILE%\.ets2-tracker\config.json`:
    ```json
    {
-     "ingestUrl": "http://127.0.0.1:54321/functions/v1/ingest",
+     "ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest",
      "apiKey": "<48 hex chars from your profile>"
    }
    ```
-   (For the Fastify backend instead of Supabase, use
-   `http://localhost:4000/api/ingest`.)
-3. Start the game, then `bun dev:client`. The agent samples at 10 Hz, batches
-   every second, and POSTs to `ingestUrl` with `Authorization: Bearer <apiKey>`.
-   Failed batches are persisted under `%USERPROFILE%\.ets2-tracker\pending\`
-   and replayed on reconnect.
-```
+3. Start the game, then `bun dev:client`. The agent samples at 1 Hz, batches
+   every second, and persists failed batches under
+   `%USERPROFILE%\.ets2-tracker\pending\` for replay.
+
+## Deployment
+
+Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).

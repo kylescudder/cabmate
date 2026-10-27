@@ -1,9 +1,0 @@
-[build]
-  command = "bun install --frozen-lockfile && bun run --filter @ets2/web build"
-  publish = "apps/web/.next"
-
-[build.environment]
-  BUN_VERSION = "1.2.16"
-
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
