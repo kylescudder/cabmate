@@ -1,5 +1,6 @@
-# Publishes a checked, attested image for every commit on main. GitHub holds
-# only webhook/Access credentials, never Atlassian or shell access.
+# Publishes a checked, attested image for every commit on main, then asks Herman
+# to deploy that digest. GitHub holds only webhook/Access credentials, never
+# database credentials or shell access.
 name: Release
 
 on:
@@ -116,3 +117,85 @@ jobs:
           DIGEST: ${{ steps.manifest.outputs.digest }}
         run: docker buildx imagetools create -t "$IMAGE:main" "$IMAGE@$DIGEST"
 
+  deploy:
+    needs: publish
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+      attestations: read
+    environment:
+      name: production
+      url: ${{ vars.ETS2_BASE_URL }}
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    env:
+      DEPLOY_URL: https://deploy-ets2.kylescudder.co.uk/hooks/ets2-data-dashboard
+      HEALTH_URL: ${{ vars.ETS2_BASE_URL }}/healthz
+    steps:
+      - name: Check deploy endpoint protection
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          [[ -n "$CF_ACCESS_CLIENT_ID" && -n "$CF_ACCESS_CLIENT_SECRET" ]] || { echo '::error::Configure the production Cloudflare Access service-token secrets.'; exit 1; }
+          headers=$(mktemp)
+          trap 'rm -f "$headers"' EXIT
+          status=$(curl --silent --show-error --max-time 30 --output /dev/null --write-out '%{http_code}' \
+            --dump-header "$headers" -X POST "$DEPLOY_URL")
+          [[ "$status" = 401 || "$status" = 403 ]] || { echo "::error::Cloudflare Access did not block an unauthenticated request ($status)."; exit 1; }
+          ! grep -qi '^x-ets2-deploy-hook: 1' "$headers" || { echo '::error::Unauthenticated request reached the receiver.'; exit 1; }
+          for path in / /healthz /other; do
+            status=$(curl --silent --show-error --max-time 30 --output /dev/null --write-out '%{http_code}' \
+              -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+              "https://deploy-ets2.kylescudder.co.uk$path")
+            [[ "$status" = 404 ]] || { echo "::error::Non-webhook path returned $status."; exit 1; }
+          done
+          status=$(curl --silent --show-error --max-time 30 --output /dev/null --write-out '%{http_code}' \
+            --dump-header "$headers" \
+            -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+            -H 'X-ETS2-Signature: sha256=invalid' --data '{}' "$DEPLOY_URL")
+          [[ "$status" = 401 ]] || { echo "::error::Invalid webhook signature returned $status."; exit 1; }
+          grep -qi '^x-ets2-deploy-hook: 1' "$headers" || { echo '::error::Service token did not reach the receiver.'; exit 1; }
+      - name: Request deploy
+        env:
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          body=$(jq -cn --arg digest "$DIGEST" --arg revision "$GITHUB_SHA" --arg registryToken "$REGISTRY_TOKEN" --argjson timestamp "$(date +%s)" \
+            '{digest: $digest, revision: $revision, timestamp: $timestamp, registryToken: $registryToken}')
+          signature=$(printf '%s' "$body" | openssl dgst -sha256 -hmac "$WEBHOOK_SECRET" -hex | awk '{print $NF}')
+          curl --fail-with-body --silent --show-error --max-time 30 "$DEPLOY_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-ETS2-Signature: sha256=$signature" \
+            -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+            -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" \
+            --data "$body"
+      - name: Wait for production
+        env:
+          DIGEST: ${{ needs.publish.outputs.digest }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          for attempt in $(seq 60); do
+            accepted=$(curl --fail --silent --max-time 10 \
+              -H "CF-Access-Client-Id: $CF_ACCESS_CLIENT_ID" \
+              -H "CF-Access-Client-Secret: $CF_ACCESS_CLIENT_SECRET" "$DEPLOY_URL" \
+              | jq -r --arg revision "$GITHUB_SHA" --arg image "$IMAGE@$DIGEST" \
+                'if .revision == $revision and .image == $image then .status else "pending" end' || true)
+            revision=$(curl --fail --silent --max-time 10 --dump-header - --output /dev/null "$HEALTH_URL" \
+              | tr -d '\r' | awk -F': ' 'tolower($1) == "x-ets2-revision" {print $2}' || true)
+            if [ "$accepted" = deployed ] && [ "$revision" = "$GITHUB_SHA" ]; then
+              echo "The host accepted the healthy image and production is running $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Production did not report $GITHUB_SHA within 10 minutes (last: ${revision:-none}). Check state/deploy.log on the host."
+          exit 1
