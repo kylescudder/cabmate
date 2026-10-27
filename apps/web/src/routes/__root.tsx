@@ -5,6 +5,22 @@ import type { ReactNode } from 'react';
 import { UnitsProvider } from '../lib/units';
 import '../globals.css';
 
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#fbbf24', colorPrimaryForeground: '#0b0f17',
+    colorBackground: '#121826', colorForeground: '#e6e9ef', colorMutedForeground: '#94a3b8',
+    colorInput: '#0b0f17', colorInputForeground: '#e6e9ef',
+    colorBorder: '#1f2a3d', colorNeutral: '#e6e9ef', colorShadow: '#000000', borderRadius: '0.5rem',
+  },
+  elements: {
+    card: '!border !border-[#1f2a3d] !shadow-none',
+    socialButtonsBlockButton: '!border-[#1f2a3d] !bg-[#0b0f17] hover:!bg-[#1f2a3d]',
+    formFieldInput: '!border-[#1f2a3d]',
+    dividerLine: '!bg-[#1f2a3d]',
+    footerActionLink: '!text-[#fbbf24]',
+  },
+};
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Euro Truck Simulator 2 Data Dashboard' }] }),
   component: Root, shellComponent: Document,
@@ -14,7 +30,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function Root() {
   const { queryClient } = Route.useRouteContext();
   const app = <QueryClientProvider client={queryClient}><UnitsProvider><Outlet /></UnitsProvider></QueryClientProvider>;
-  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider>{app}</ClerkProvider> : app;
+  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance}>{app}</ClerkProvider> : app;
 }
 function Document({ children }: { children: ReactNode }) {
   return <html lang="en"><head><HeadContent /></head><body className="min-h-screen">{children}<Scripts /></body></html>;
