@@ -2,30 +2,42 @@
   "name": "@ets2/web",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start -p 3000"
+    "dev": "bun --bun vite --host 127.0.0.1 --port 3000",
+    "build": "bun --bun vite build",
+    "start": "bun server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "bunx --no-install drizzle-kit generate",
+    "db:migrate": "bun server/migrate.ts",
+    "db:import": "bun server/import-legacy.ts"
   },
   "dependencies": {
+    "@clerk/backend": "^3.26.3",
+    "@clerk/tanstack-react-start": "^1.7.3",
     "@ets2/shared": "workspace:*",
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.3",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-router": "^1.170.46",
+    "@tanstack/react-start": "^1.169.4",
+    "drizzle-orm": "^0.45.4",
     "leaflet": "^1.9.4",
-    "next": "^15.0.3",
-    "react": "^19.0.0-rc-66855b96-20241106",
-    "react-dom": "^19.0.0-rc-66855b96-20241106",
+    "postgres": "^3.4.9",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-leaflet": "^5.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",
     "@types/node": "^22.9.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "vite": "^8.3.5",
+    "drizzle-kit": "^0.31.11",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3"
+    "typescript": "^5.9.3"
   }
 }

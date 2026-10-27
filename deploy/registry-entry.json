@@ -1,0 +1,16 @@
+{
+  "name": "ets2-data-dashboard",
+  "title": "ETS2 Data Dashboard",
+  "repo": "kylescudder/ets2-data-dashboard",
+  "image": "ghcr.io/kylescudder/ets2-data-dashboard",
+  "image_var": "ETS2_IMAGE",
+  "service": "web",
+  "workflow": "release.yml",
+  "branch": "main",
+  "compose_file": "compose.yaml",
+  "app_dir": "ets2-data-dashboard",
+  "backups": true,
+  "bind_source_digest": true,
+  "installed_hooks": true,
+  "enabled": false
+}

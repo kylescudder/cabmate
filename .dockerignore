@@ -1,0 +1,11 @@
+.git
+node_modules
+**/node_modules
+**/dist
+**/.tanstack
+.env*
+!.env.example
+.artifacts
+supabase
+deploy/projects
+deploy/secrets

@@ -18,3 +18,12 @@ supabase/snippets/
 # place. Never commit them; they hold prod secrets.
 deploy/projects/
 deploy/secrets/
+
+# Local build and verification artifacts
+.tanstack/
+.output/
+.artifacts/
+playwright-report/
+test-results/
+.env.*
+!.env.example

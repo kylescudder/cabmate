@@ -9,7 +9,7 @@ export interface ClientConfig {
 }
 
 const TEMPLATE = {
-  ingestUrl: "http://127.0.0.1:54321/functions/v1/ingest",
+  ingestUrl: "http://127.0.0.1:3000/api/ingest",
   apiKey: "paste-your-key-from-the-profile-page",
 };
 
