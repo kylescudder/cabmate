@@ -59,13 +59,13 @@ describe('telemetry ingest', () => {
   });
 
   test('ingested driving shows up live and on the leaderboard', async () => {
-    await post('key-mike', payload(randomUUID(), [sample(58, 1000), sample(59, 1012.5)]));
+    await post('key-mike', payload(randomUUID(), [sample(58, 1000), sample(59, 1000.5)]));
     const get = (path: string) => signedIn(new Request(`http://ets2.test${path}`)).then(r => r.json());
     const drivers = await get('/api/drivers') as { name: string; status: string }[];
     expect(drivers.find(d => d.name === 'mike')?.status).toBe('online');
     expect(drivers.find(d => d.name === 'sarah')?.status).toBe('offline');
     const board = await get('/api/leaderboard') as { name: string; totalKm: number }[];
-    expect(board[0]).toMatchObject({ name: 'mike', totalKm: 12.5 });
+    expect(board[0]).toMatchObject({ name: 'mike', totalKm: 0.5 });
   });
 
   test('read endpoints require a signed-in user', async () => {

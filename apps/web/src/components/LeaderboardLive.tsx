@@ -8,6 +8,7 @@ export interface LeaderboardRow {
   name: string;
   display_name: string;
   totalKm: number;
+  allTimeKm: number;
 }
 
 export function LeaderboardLive({ initial = [] }: { initial?: LeaderboardRow[] }) {
@@ -21,7 +22,8 @@ export function LeaderboardLive({ initial = [] }: { initial?: LeaderboardRow[] }
           <tr>
             <th className="text-left px-4 py-2 w-10">#</th>
             <th className="text-left px-4 py-2">Driver</th>
-            <th className="text-right px-4 py-2">Distance</th>
+            <th className="text-right px-4 py-2">Last 14 days</th>
+            <th className="text-right px-4 py-2">All time</th>
           </tr>
         </thead>
         <tbody>
@@ -35,6 +37,9 @@ export function LeaderboardLive({ initial = [] }: { initial?: LeaderboardRow[] }
               </td>
               <td className="px-4 py-3 text-right font-mono">
                 {formatDistance(r.totalKm, units, 1)}
+              </td>
+              <td className="px-4 py-3 text-right font-mono text-slate-400">
+                {formatDistance(r.allTimeKm, units, 0)}
               </td>
             </tr>
           ))}

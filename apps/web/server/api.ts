@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Database } from './db';
+import { MAX_MINUTE_KM, steps } from './distance';
 import { ingest, newApiKey } from './ingest';
 import { jobs, sessions, telemetry, users, vehicles } from './schema';
 
@@ -39,6 +40,36 @@ export async function listDrivers(db: Database) {
   });
 }
 
+// Raw telemetry covers roughly the last 14 days; rollup.ts folds anything older into
+// per-minute rows and deletes it. All-time figures therefore add the two together.
+export async function leaderboard(db: Database) {
+  return db.execute(sql`
+    with steps as (${steps()}), rolled as (
+      select user_id, sum(distance_km) km from telemetry_rollup_minute where distance_km <= ${MAX_MINUTE_KM} group by user_id
+    ) select u.id, u.name, u.display_name,
+      coalesce((select sum(km) from steps where steps.user_id = u.id and time > now() - interval '14 days'), 0)::float8 as "totalKm",
+      (coalesce((select sum(km) from steps where steps.user_id = u.id), 0)
+        + coalesce((select km from rolled where rolled.user_id = u.id), 0))::float8 as "allTimeKm"
+    from users u order by "totalKm" desc, "allTimeKm" desc, u.display_name
+  `);
+}
+
+// One row per UTC day the driver drove, from the first rollup to the latest raw sample.
+export async function driverDays(db: Database, userId: string) {
+  return db.execute(sql`
+    with steps as (${steps(sql`user_id = ${userId}`)}), days as (
+      select date_trunc('day', bucket) bucket, sum(distance_km) filter (where distance_km <= ${MAX_MINUTE_KM}) km,
+        sum(avg_speed_kph * samples) speed_sum, sum(samples) samples, max(max_speed_kph) top, count(*) minutes
+      from telemetry_rollup_minute where user_id = ${userId} group by 1
+      union all
+      select date_trunc('day', time), sum(km), sum(speed_kph), count(*), max(speed_kph), count(distinct date_trunc('minute', time))
+      from steps group by 1
+    ) select bucket, coalesce(sum(km), 0)::float8 distance_km, (sum(speed_sum) / nullif(sum(samples), 0))::float8 avg_speed,
+      max(top)::float8 top_speed_kph, sum(minutes)::int minutes
+    from days group by bucket order by bucket
+  `);
+}
+
 export function createApi(getDb: () => Database, getIdentity: () => Promise<string | null>) {
   return async (request: Request): Promise<Response> => {
     const { pathname, origin } = new URL(request.url);
@@ -72,24 +103,12 @@ export function createApi(getDb: () => Database, getIdentity: () => Promise<stri
       } else if (pathname === '/api/drivers' && request.method === 'GET') {
         result = await listDrivers(db);
       } else if (pathname === '/api/leaderboard' && request.method === 'GET') {
-        result = await db.execute(sql`
-          with per_session as (
-            select user_id, session_id, greatest(0, max(odometer_km)-min(odometer_km)) km
-            from telemetry where time > now() - interval '14 days' group by user_id, session_id
-          ) select u.id, u.name, u.display_name, coalesce(sum(p.km),0)::float8 as "totalKm"
-          from users u left join per_session p on p.user_id = u.id group by u.id order by "totalKm" desc
-        `);
+        result = await leaderboard(db);
       } else if (pathname.startsWith('/api/drivers/') && request.method === 'GET') {
         const name = decodeURIComponent(pathname.slice('/api/drivers/'.length));
         const [user] = await db.select(publicUser).from(users).where(eq(users.name, name));
         if (!user) return Response.json({ error: 'Driver not found' }, { status: 404 });
-        const history = await db.execute(sql`
-          with per_session as (
-            select date_trunc('day', time) bucket, session_id, avg(speed_kph) avg_speed,
-              greatest(0, max(odometer_km)-min(odometer_km)) distance_km
-            from telemetry where user_id=${user.id} and time > now() - interval '14 days' group by 1, 2
-          ) select bucket, avg(avg_speed)::float8 avg_speed, sum(distance_km)::float8 distance_km from per_session group by bucket order by bucket
-        `);
+        const history = await driverDays(db, user.id);
         const recent = await db.select({ time: telemetry.time, speed_kph: telemetry.speedKph, fuel_litres: telemetry.fuelLitres, odometer_km: telemetry.odometerKm, job_id: telemetry.jobId,
           jobs: { cargo: jobs.cargo, source_city: jobs.sourceCity, destination_city: jobs.destinationCity } })
           .from(telemetry).leftJoin(jobs, eq(jobs.id, telemetry.jobId)).where(eq(telemetry.userId, user.id)).orderBy(desc(telemetry.time)).limit(200);

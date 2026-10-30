@@ -52,6 +52,7 @@ Change the on-the-wire shape there, not in each app.
   invalidates `['driver', name]` for drivers with new samples, and polls every 2s only while disconnected.
   `bun run dev` (Vite) has no `/ws`, so dev runs on that fallback poll; use `build` + `start` to exercise the socket.
 - Plain Postgres only (no Timescale). Retention is `server/rollup.ts` (14 days raw, then per-minute rollups).
+  Leaderboard and driver pages add the two for all-time stats; distance rules (odometer jumps ignored) live in `server/distance.ts`.
 
 **`apps/client`** is the Windows agent reading scs-sdk-plugin shared memory and POSTing batches.
 
