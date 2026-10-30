@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "os": [
-    "win32"
+    "win32",
+    "linux"
   ],
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
     "build:exe": "bun build --compile --target=bun-windows-x64 src/index.ts --outfile dist/ets2-tracker.exe",
+    "build:linux": "bun build --compile --target=bun-linux-x64 src/index.ts --outfile dist/ets2-tracker",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

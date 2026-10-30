@@ -4,7 +4,8 @@ export function OnboardingBanner() {
       <div>
         <h2 className="text-lg font-bold text-accent">Welcome — let&apos;s get you on the road</h2>
         <p className="text-sm text-slate-300 mt-1">
-          Live telemetry comes from a small Windows agent on your gaming PC. It
+          Live telemetry comes from a small agent on your gaming PC (Windows, or
+          Linux with Proton). It
           reads <code className="mx-1 text-xs">Local\SCSTelemetry</code> (the
           shared-memory block exposed by scs-sdk-plugin) and POSTs samples to
           this site. Four one-time steps:
@@ -65,6 +66,34 @@ export function OnboardingBanner() {
           the in-game dev console so you can verify the plugin loaded.
         </li>
       </ol>
+
+      <div className="text-sm text-slate-300 space-y-2">
+        <p className="font-semibold">Playing on Linux with Proton?</p>
+        <p>
+          Pick a Proton version under <span className="font-semibold">Properties</span> →{" "}
+          <span className="font-semibold">Compatibility</span> →{" "}
+          <span className="font-semibold">Select compatibility tool</span>, install
+          scs-sdk-plugin into the same <code className="text-xs">bin\win_x64\plugins</code>{" "}
+          folder, and install{" "}
+          <a
+            className="underline hover:text-accent"
+            href="https://github.com/srounce/winecarte"
+            target="_blank"
+            rel="noreferrer"
+          >
+            winecarte
+          </a>{" "}
+          so the telemetry shows up in <code className="text-xs">/dev/shm</code>. Put
+          the Linux <code className="text-xs">ets2-tracker</code> build and{" "}
+          <code className="text-xs">config.json</code> in{" "}
+          <code className="text-xs">~/.ets2-tracker/</code>, run{" "}
+          <code className="text-xs">chmod +x ~/.ets2-tracker/ets2-tracker</code>, then use
+          these launch options:
+        </p>
+        <pre className="rounded border border-edge bg-ink px-3 py-2 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+{`~/.ets2-tracker/ets2-tracker winecarte-run %command% -developer -console`}
+        </pre>
+      </div>
 
       <p className="text-xs text-slate-500 pt-2 border-t border-edge">
         This panel disappears once your first driving session arrives.

@@ -1,7 +1,7 @@
-name: Release Windows client
+name: Release client
 
-# Builds apps/client into a single Windows .exe via `bun build --compile`
-# and attaches it to a GitHub Release. Triggered by pushing a tag like
+# Builds apps/client into a single Windows .exe and a Linux (Proton) binary via
+# `bun build --compile` and attaches both to a GitHub Release. Triggered by pushing a tag like
 # `v0.1.0`, or run manually via the Actions tab.
 
 on:
@@ -28,11 +28,16 @@ jobs:
       - name: Compile Windows exe
         run: bun run --filter @ets2/client build:exe
 
+      - name: Compile Linux binary
+        run: bun run --filter @ets2/client build:linux
+
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: apps/client/dist/ets2-tracker.exe
+          files: |
+            apps/client/dist/ets2-tracker.exe
+            apps/client/dist/ets2-tracker
           generate_release_notes: true
 
       - name: Upload as workflow artifact
@@ -40,4 +45,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ets2-tracker
-          path: apps/client/dist/ets2-tracker.exe
+          path: |
+            apps/client/dist/ets2-tracker.exe
+            apps/client/dist/ets2-tracker
