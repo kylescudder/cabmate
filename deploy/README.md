@@ -57,10 +57,11 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    `CLERK_PUBLISHABLE_KEY` is needed at runtime as well as build time — without
    it Clerk's server middleware fails every page render with a 500.
 4. **Routing**: point `ets2.kylescudder.co.uk` at the `ets2-data-dashboard`
-   alias on `platform-web`, port 3000. Also route the old Supabase host
-   `api.ets2.kylescudder.co.uk` to the same service — already-installed agents
-   post to `https://api.ets2.kylescudder.co.uk/functions/v1/ingest`, which the
-   app still serves. Ingest paths must be reachable without Access/SSO because
+   alias on `platform-web`, port 3000. Do not route the old Supabase host
+   `api.ets2.kylescudder.co.uk`: it is a two-level subdomain, which Cloudflare's
+   Universal SSL does not cover, so it cannot serve TLS. Already-installed
+   agents must have `ingestUrl` changed to the main hostname (see below).
+   Ingest paths must be reachable without Access/SSO because
    the Windows agent authenticates with its own bearer API key.
    The dashboard's live view uses a WebSocket at `/ws` on the main hostname, so
    the proxy must pass `Upgrade` through (keep it behind the same edge policy as
@@ -109,8 +110,11 @@ matched by email.
    `DATABASE_URL=postgres://ets2_owner@… bun run db:import /private/ets2-snapshot.json identity-map.json`
 
 UUIDs and agent API keys are preserved, so friends' installed agents keep
-working once their configured `ingestUrl` host points at Herman (the old
-`/functions/v1/ingest` path is still served).
+working once their `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` is
+changed from the old `https://api.ets2.kylescudder.co.uk/functions/v1/ingest` to
+`https://ets2.kylescudder.co.uk/api/ingest` (the path shown in the profile
+page's *Agent setup* snippet). The old `/functions/v1/ingest` path is still
+served on the main hostname, so only the host has to change if you prefer.
 
 ## Retention
 
