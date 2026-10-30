@@ -72,6 +72,22 @@ Drizzle schema in `apps/web/server/schema.ts`, migrations in `apps/web/drizzle/`
    every second, and persists failed batches under
    `%USERPROFILE%\.ets2-tracker\pending\` for replay.
 
+### Already set up on the old version?
+
+The tracker moved from `api.ets2.kylescudder.co.uk` to
+`https://ets2.kylescudder.co.uk`, and the old address no longer works. Your
+`apiKey` is unchanged — only the URL needs updating. Open
+`%USERPROFILE%\.ets2-tracker\config.json` and change `ingestUrl` to:
+
+```json
+"ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest"
+```
+
+Then restart the agent. It should print `ets2-client → https://ets2.kylescudder.co.uk/api/ingest`
+on start. Batches that failed while the old address was down are kept under
+`pending\` and are replayed automatically. You will also need to sign in to the
+dashboard again, since accounts now use Clerk rather than Supabase.
+
 ## Deployment
 
 Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).
