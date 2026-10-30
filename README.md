@@ -72,6 +72,17 @@ Drizzle schema in `apps/web/server/schema.ts`, migrations in `apps/web/drizzle/`
    every second, and persists failed batches under
    `%USERPROFILE%\.ets2-tracker\pending\` for replay.
 
+### Already set up on the old version?
+
+Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
+
+```json
+"ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest"
+```
+
+Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard
+again — accounts now use Clerk.
+
 ## Deployment
 
 Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).
