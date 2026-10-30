@@ -1,3 +1,5 @@
+<img src="apps/web/public/favicon.svg" alt="" width="64" height="64">
+
 # ETS2 Friends Tracker
 
 Ingests Euro Truck Simulator 2 telemetry from friends' PCs, stores it in
