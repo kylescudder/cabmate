@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "start": "bun src/index.ts",
-    "build:exe": "bun build --compile --target=bun-windows-x64 src/index.ts --outfile dist/ets2-tracker.exe",
+    "build:exe": "bun build --compile --target=bun-windows-x64 src/index.ts --windows-icon=icon.ico --outfile dist/ets2-tracker.exe",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
