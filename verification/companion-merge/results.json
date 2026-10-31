@@ -1,0 +1,83 @@
+{
+  "implementationRevision": "cc9d81c9eb973c76a30afbcf54102dd597d42d1d",
+  "captureSource": "Exact implementation files committed as this revision; captures occurred just before commit. Subsequent evidence-only commit does not change app code.",
+  "baseRevision": "d35c428864b44fb7fa1dd22e0c7f8a7a169b54a0",
+  "environment": {
+    "os": "macOS",
+    "bun": "1.4.4",
+    "browser": "Chromium 156.0.8078.4",
+    "desktopViewport": "1440x1000",
+    "mobileViewport": "390x844",
+    "baseUrl": "http://127.0.0.1:3199",
+    "externalStationBoundary": "Loopback station-state fixture; real built application and HTTP adapter; no Clerk credentials configured."
+  },
+  "images": [
+    {
+      "file": "desktop-radio.png",
+      "sha256": "960e937010092287ec4e2f379a3b45e805fcc5e2e82d1ef3238b3aef01802016",
+      "capturedUtc": "2026-10-31T08:44:29.476196+00:00"
+    },
+    {
+      "file": "mobile-radio.png",
+      "sha256": "a135e8adeedd3adad9a99ae865cd3c8fc058aba7ede3072d6c9504fa3e855348",
+      "capturedUtc": "2026-10-31T08:44:47.887054+00:00"
+    },
+    {
+      "file": "desktop-radio-unavailable.png",
+      "sha256": "05cf40508074f9f43f68a9819e8223bf0c7d9c1756f69038ffd7b7f88b895f60",
+      "capturedUtc": "2026-10-31T08:44:34.968543+00:00"
+    },
+    {
+      "file": "mobile-login.png",
+      "sha256": "d0df0cd4ff48c204f76dbdbfd25a2431847105f126c03d5d3c2048178dcfae3e",
+      "capturedUtc": "2026-10-31T08:45:05.686165+00:00"
+    }
+  ],
+  "audioIndependence": {
+    "result": "PASS",
+    "broadcasterRevision": "241ced739763c40b6f551fdbb86cce11327f6112",
+    "bun": "1.4.4",
+    "stream": "one local HTTP response, ICY enabled",
+    "bytesBeforeWebRestart": 3200,
+    "bytesAfterWebRestart": 12800,
+    "retainedListeners": 1,
+    "limits": "Local process test with repository MP3; no production relay, DNS, decoding or in-game verification."
+  },
+  "containerAcceptance": {
+    "result": "PASS",
+    "cases": [
+      {
+        "path": "/healthz",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/radio",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/radio/state",
+        "method": "GET",
+        "status": 503
+      },
+      {
+        "path": "/api/drivers",
+        "method": "GET",
+        "status": 401
+      },
+      {
+        "path": "/api/ingest",
+        "method": "POST",
+        "status": 401
+      },
+      {
+        "path": "/functions/v1/ingest",
+        "method": "POST",
+        "status": 401
+      }
+    ],
+    "note": "Actual production image, non-root/read-only/capabilities dropped, disposable database; no broadcaster alias attached so radio fails safely."
+  },
+  "imageId": "sha256:8f12e8c5abb6c7aa4bf40866d32c514f396b59a98ed5427eb7ac92482004fce3"
+}
