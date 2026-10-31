@@ -21,7 +21,7 @@ with tempfile.TemporaryDirectory(prefix="relay-check-", dir="/opt/radio-max/rela
             "run", "--config", str(config), "--adapter", "caddyfile",
         ], stdout=log, stderr=log, env={**os.environ, "RADIO_MAX_RELAY_TOKEN": token})
         try:
-            for attempt in range(30):
+            for _ in range(30):
                 if process.poll() is not None:
                     raise RuntimeError("Candidate relay exited before readiness")
                 try:

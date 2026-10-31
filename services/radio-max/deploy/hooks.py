@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """RadioMax application-owned hooks for the installed deployment service."""
-from pathlib import Path
 
 import deploy_core as core
 
