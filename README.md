@@ -1,16 +1,17 @@
-<img src="apps/web/public/favicon.svg" alt="" width="64" height="64">
+# Cabmate
 
-# ETS2 Friends Tracker
+Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Ingests Euro Truck Simulator 2 telemetry from friends' PCs, stores it in
-PostgreSQL, and shows live + historical dashboards so you can see what
-everyone is hauling.
+Public radio lives at `/radio`; driving and profile pages use Clerk. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
+
+Connect your gaming PC to see where your friends are driving, what they’re hauling,
+and how your journeys add up. Tune into RadioMax from the same app.
 
 ## Architecture
 
 ```
 apps/client     Windows telemetry agent, reads scs-sdk-plugin shared memory
-apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — dashboard UI
+apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — companion UI
                 and the JSON API, served by one Bun process (server/index.ts)
 packages/shared Zod schemas / TS types for the ingest wire format
 ```
@@ -88,3 +89,7 @@ again — accounts now use Clerk.
 ## Deployment
 
 Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).
+
+## Real Clerk development check
+
+`bun run test:clerk` is an opt-in test against a locally running build with real development keys and the existing test account. It verifies protected pages, profile persistence, the live socket and sign-out against disposable storage. See [the setup and evidence](verification/companion-merge/clerk-development.md); credentials are never committed or required by the default CI suite.

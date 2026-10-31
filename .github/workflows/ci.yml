@@ -34,3 +34,14 @@ jobs:
       - run: bun run test
       - run: bun run build
       - run: bun run typecheck
+      - run: bunx --no-install playwright install --with-deps chromium
+      - run: bun run test:e2e
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: cabmate-browser-evidence
+          path: |
+            .artifacts/companion-merge/*.png
+            .artifacts/companion-merge/playwright-report/
+            test-results/
+          retention-days: 7

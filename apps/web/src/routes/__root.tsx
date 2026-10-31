@@ -22,19 +22,23 @@ const clerkAppearance = {
 };
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Euro Truck Simulator 2 Data Dashboard' }, { name: 'theme-color', content: '#121826' }],
+  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Cabmate — Your ETS2 companion' }, { name: 'theme-color', content: '#121826' }],
     links: [
-      { rel: 'icon', href: '/favicon.ico', sizes: '32x32' }, { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
-      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }, { rel: 'manifest', href: '/site.webmanifest' },
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'apple-touch-icon', href: '/icon-512.png' }, { rel: 'manifest', href: '/site.webmanifest' },
     ] }),
   component: Root, shellComponent: Document,
   notFoundComponent: () => <p className="p-8">Page not found.</p>,
-  errorComponent: () => <p role="alert" className="p-8">Unable to load the dashboard. Please try again.</p>,
+  errorComponent: () => <p role="alert" className="p-8">Unable to load Cabmate. Please try again.</p>,
 });
 function Root() {
   const { queryClient } = Route.useRouteContext();
   const app = <QueryClientProvider client={queryClient}><UnitsProvider><Outlet /></UnitsProvider></QueryClientProvider>;
-  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance}>{app}</ClerkProvider> : app;
+  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance} localization={{
+    signIn: { start: { title: 'Sign in to Cabmate', titleCombined: 'Continue to Cabmate' },
+      password: { subtitle: 'to continue to Cabmate' }, emailCode: { subtitle: 'to continue to Cabmate' }, emailCodeMfa: { subtitle: 'to continue to Cabmate' } },
+    signUp: { start: { title: 'Join Cabmate' } },
+  }}>{app}</ClerkProvider> : app;
 }
 function Document({ children }: { children: ReactNode }) {
   return <html lang="en"><head><HeadContent /></head><body className="min-h-screen">{children}<Scripts /></body></html>;

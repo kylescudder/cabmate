@@ -8,5 +8,5 @@ const signedIn = createServerFn().handler(async () => {
 });
 export const Route = createFileRoute('/_dashboard')({
   beforeLoad: async () => { if (!(await signedIn())) throw redirect({ to: '/login' }); },
-  component: () => <><Nav /><main className="max-w-6xl mx-auto px-6 py-8"><Outlet /></main></>,
+  component: () => <><Nav /><main id="main" className="max-w-6xl mx-auto px-6 py-8"><Outlet /></main></>,
 });

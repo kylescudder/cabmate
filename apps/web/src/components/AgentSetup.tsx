@@ -55,9 +55,9 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
   return (
     <section className="max-w-lg rounded-lg border border-edge bg-panel p-6 space-y-4">
       <div>
-        <h2 className="text-lg font-bold">Agent setup</h2>
+        <h2 className="text-lg font-bold">Connect your game</h2>
         <p className="text-xs text-slate-500 mt-1">
-          The Windows telemetry agent identifies you with the API key below.
+          The Windows companion uses this key to connect your game to Cabmate.
           Download the .exe, drop the config snippet into
           <code className="mx-1">%USERPROFILE%\.ets2-tracker\config.json</code>,
           then double-click the .exe with ETS2 running.

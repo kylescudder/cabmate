@@ -50,7 +50,7 @@ function DriverPage() {
         </div>)}</div>
       </div>
     </section>}
-    <section><h2 className="text-sm uppercase tracking-wide text-slate-500 mb-3">Recent telemetry</h2><div className="rounded-lg border border-edge bg-panel overflow-x-auto"><RecentTelemetryTable rows={data.recent} /></div></section>
+    <section><h2 className="text-sm uppercase tracking-wide text-slate-500 mb-3">Recent driving</h2><div className="rounded-lg border border-edge bg-panel overflow-x-auto"><RecentTelemetryTable rows={data.recent} /></div></section>
   </div>;
 }
 function Stat({ label, children }: { label: string; children: ReactNode }) {

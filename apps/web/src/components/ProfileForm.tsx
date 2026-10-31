@@ -69,7 +69,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
           className="w-full rounded border border-edge bg-ink px-3 py-2 outline-none focus:border-accent"
         />
         <p className="text-xs text-slate-500 mt-1">
-          Shown on driver cards, the leaderboard, and the live map.
+          Shown on driver cards, On the road, and the live map.
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
       <div>
         <h2 className="text-lg font-bold">Units</h2>
         <p className="text-xs text-slate-500 mt-1">
-          How speed and distance are shown across the dashboard. Saved on this
+          How speed and distance are shown in Cabmate. Saved on this
           device — set it once per browser.
         </p>
       </div>

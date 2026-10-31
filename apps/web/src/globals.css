@@ -6,3 +6,57 @@ html, body {
   background: #0b0f17;
   color: #e6e9ef;
 }
+
+body { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
+a, button, input, summary, pre[tabindex] { outline-offset: 5px; }
+:focus-visible { outline: 2px solid #fbbf24; }
+.cab-header { border-bottom: 1px solid #283246; background: #121826; }
+.cab-nav { max-width: 1152px; margin: auto; padding: 18px 24px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+.cab-brand { display: flex; gap: 10px; align-items: center; color: #fbbf24; font-size: 24px; font-weight: 800; line-height: 1.1; }
+.cab-tagline { display: block; margin-top: 5px; color: #a5afbd; font-size: 12px; font-weight: 400; }
+.cab-nav nav { display: flex; flex-wrap: wrap; gap: 8px 20px; flex: 1; }
+.cab-nav nav a { padding: 10px 0; color: #bdc7d5; font-size: 14px; white-space: nowrap; }
+.cab-nav nav a[aria-current=page] { color: #fbbf24; box-shadow: inset 0 -2px #fbbf24; }
+.nav-signout { padding: 10px 0; color: #bdc7d5; font-size: 12px; }
+.skip-link { position: absolute; left: 16px; top: -100px; z-index: 9999; background: #fbbf24; color: #0b0f17; padding: 12px; }
+.skip-link:focus { top: 8px; }
+.radio-page { max-width: 1000px; margin: auto; padding: 56px 24px 32px; }
+.radio-intro { display: grid; grid-template-columns: 1.2fr 1fr; align-items: end; gap: 32px; margin-bottom: 36px; }
+.radio-intro h1 { font-size: clamp(32px, 4vw, 48px); line-height: 1.12; letter-spacing: -1.3px; font-weight: 700; }
+.radio-intro p { color: #aebaca; line-height: 1.7; max-width: 38ch; }
+.radio-console { border: 1px solid #354156; border-radius: 16px; overflow: hidden; margin-bottom: 24px; }
+.radio-face { padding: 32px; background: #192333; }
+.radio-station-line { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.radio-station-line h2 { font-size: 30px; font-weight: 800; letter-spacing: -.8px; }
+.on-air { display: flex; gap: 8px; align-items: center; color: #c7d9c2; font-size: 13px; white-space: nowrap; }
+.on-air > span { width: 7px; height: 7px; background: #b2cf9c; border-radius: 50%; }
+.radio-genre { color: #aebaca; font-size: 14px; margin-top: 4px; }
+.radio-playing { margin-top: 36px; }
+.radio-playing p { color: #b7c3d2; font-size: 14px; }
+.radio-playing h3 { font-size: clamp(26px, 4vw, 40px); color: #fbd174; margin-top: 8px; font-weight: 700; overflow-wrap: anywhere; }
+.radio-progress { height: 4px; background: #364459; margin-top: 28px; border-radius: 4px; overflow: hidden; }
+.radio-progress span { height: 100%; display: block; background: #fbd174; }
+.radio-details { margin-top: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 13px; color: #b7c3d2; }
+.radio-setup { padding: 28px 32px 20px; background: #121826; }
+.radio-setup h3, .radio-notice h2 { font-size: 20px; font-weight: 700; }
+.radio-setup p { color: #aebaca; font-size: 14px; line-height: 1.7; margin-top: 10px; max-width: 75ch; }
+.radio-setup code { color: #d9e2ef; font-size: 12px; overflow-wrap: anywhere; }
+.radio-setup pre { padding: 16px; background: #0b0f17; border: 1px solid #354156; border-radius: 6px; font-size: 12px; color: #d9e2ef; white-space: pre-wrap; overflow-wrap: anywhere; margin: 20px 0 16px; }
+.cab-button { display: inline-block; border-radius: 6px; background: #fbd174; color: #17202e; padding: 12px 18px; font-size: 14px; font-weight: 700; }
+.cab-button:hover { background: #ffe0a0; }
+.cab-button:disabled { opacity: .6; }
+.radio-setup .copy-status { min-height: 24px; color: #c7d9c2; }
+.radio-setup details { padding: 16px 0 4px; border-top: 1px solid #283246; margin-top: 12px; }
+.radio-setup summary { cursor: pointer; color: #d9e2ef; font-size: 14px; }
+.radio-footer { color: #a5afbd; font-size: 13px; line-height: 1.7; margin-top: 28px; }
+.radio-notice { padding: 32px; border: 1px solid #354156; border-radius: 12px; color: #bdc7d5; }
+.radio-notice p { margin: 12px 0 20px; }
+@media (max-width: 640px) {
+  .cab-nav { gap: 16px; padding: 16px 20px 8px; }
+  .cab-nav nav { flex-basis: 100%; gap: 8px 18px; }
+  .radio-page { padding: 32px 20px; }
+  .radio-intro { display: block; margin-bottom: 24px; }
+  .radio-intro p { margin-top: 20px; }
+  .radio-face, .radio-setup { padding: 24px 20px; }
+  .radio-station-line h2 { font-size: 26px; }
+}

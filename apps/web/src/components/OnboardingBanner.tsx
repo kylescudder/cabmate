@@ -4,10 +4,8 @@ export function OnboardingBanner() {
       <div>
         <h2 className="text-lg font-bold text-accent">Welcome — let&apos;s get you on the road</h2>
         <p className="text-sm text-slate-300 mt-1">
-          Live telemetry comes from a small Windows agent on your gaming PC. It
-          reads <code className="mx-1 text-xs">Local\SCSTelemetry</code> (the
-          shared-memory block exposed by scs-sdk-plugin) and POSTs samples to
-          this site. Four one-time steps:
+          Connect your gaming PC to see your truck and friends on the map.
+          Set up the Windows companion once, then it starts with your game:
         </p>
       </div>
 
