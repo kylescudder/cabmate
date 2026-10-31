@@ -3,6 +3,7 @@ import { createClerkClient } from '@clerk/backend';
 import { listDrivers } from './api';
 import { database, sqlClient } from './db';
 import { LIVE_CHANNEL } from './ingest';
+import { appOrigins, validAppOrigin } from './origin';
 
 // Clerk session tokens are short-lived; a periodic reconnect re-checks the cookie.
 const MAX_SOCKET_AGE_MS = 15 * 60_000;
@@ -41,10 +42,10 @@ export async function authorizeSocket(request: Request) {
   if (!process.env.CLERK_SECRET_KEY) return false;
   // Browsers always send Origin on WebSocket handshakes; reject cross-site pages riding the session cookie.
   const origin = process.env.APP_ORIGIN || new URL(request.url).origin;
-  if (request.headers.get('origin') !== origin) return false;
+  if (!validAppOrigin(request, origin)) return false;
   clerk ??= createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY,
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY });
-  const state = await clerk.authenticateRequest(request, { authorizedParties: [origin] });
+  const state = await clerk.authenticateRequest(request, { authorizedParties: appOrigins(origin) });
   return state.isSignedIn;
 }
 

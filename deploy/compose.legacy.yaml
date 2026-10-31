@@ -1,0 +1,28 @@
+name: cabmate-legacy
+services:
+  legacy:
+    image: caddy@sha256:8dc9fa87b36b25303d1c67d2a09f5824b7f3bfd72cb052f246e5da2133fe29a8
+    user: '501:20'
+    command: [caddy, run, --config, /etc/caddy/Caddyfile, --adapter, caddyfile]
+    restart: unless-stopped
+    volumes:
+      - ./legacy.Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      platform-web:
+        aliases: [cabmate-legacy]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs:
+      - /config:uid=501,gid=20,mode=0700
+      - /data:uid=501,gid=20,mode=0700
+    mem_limit: 32m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: '1m'
+        max-file: '2'
+networks:
+  platform-web:
+    external: true

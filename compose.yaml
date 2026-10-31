@@ -17,7 +17,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: '3000'
-      DATABASE_URL: postgres://ets2_runtime@postgres:5432/ets2
+      DATABASE_URL: postgres://cabmate_runtime@postgres:5432/cabmate
       DATABASE_PASSWORD_FILE: /run/secrets/database_password
     secrets: [database_password]
     networks:
@@ -31,7 +31,7 @@ services:
         max-file: '3'
 secrets:
   database_password:
-    file: ../../projects/ets2/runtime-password
+    file: ../../projects/cabmate/runtime-password
 networks:
   platform-web:
     external: true

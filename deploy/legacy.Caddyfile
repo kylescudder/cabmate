@@ -1,0 +1,31 @@
+{
+    admin off
+    auto_https off
+}
+:8080 {
+    @ets2 host ets2.kylescudder.co.uk
+    handle @ets2 {
+        @machine path /api/* /functions/v1/ingest /healthz /ws /assets/*
+        handle @machine {
+            reverse_proxy ets2-data-dashboard:3000 {
+                header_up X-Forwarded-Proto https
+            }
+        }
+        handle {
+            redir https://cabmate.kylescudder.co.uk{uri} 308
+        }
+    }
+    @radio host radio-max.kylescudder.co.uk
+    handle @radio {
+        @station path /api/* /radio/*
+        handle @station {
+            reverse_proxy radio-max:8080 {
+                header_up X-Forwarded-Proto https
+            }
+        }
+        handle {
+            redir https://cabmate.kylescudder.co.uk/radio 308
+        }
+    }
+    respond 404
+}
