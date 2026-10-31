@@ -1,0 +1,46 @@
+{
+  "verifiedSourceRevision": "92b41bafbd20a0c0942e5fd01967881c8c796d6d",
+  "sourceNote": "Exact tested application/test files committed as this revision; later commit adds this evidence only. Dev and no-key builds differ only in supplied public-key build setting.",
+  "bun": "1.4.4",
+  "browser": "Chromium 156.0.8078.4",
+  "appOrigin": "http://localhost:3201",
+  "database": "Disposable local Postgres 17, cabmate_auth on loopback 55440; destroyed after verification",
+  "realClerkTest": {
+    "command": "bun run test:clerk",
+    "passed": 1,
+    "failed": 0,
+    "sessionCreation": "Official Clerk testing helper for existing development account; no app-side auth mocks",
+    "verified": [
+      "signed-out redirect",
+      "Cabmate Clerk heading",
+      "protected profile/drivers APIs return 200",
+      "local profile save persists across reload",
+      "authenticated live socket receives drivers frame",
+      "map navigation and reload retain session",
+      "actual Sign out button",
+      "profile API 401 and redirect after sign-out"
+    ]
+  },
+  "passwordFormObservation": "Saved password reaches client-trust email challenge; email-code completion not verified",
+  "regressionChecks": {
+    "frozenInstall": "pass",
+    "build": "pass",
+    "typecheck": "three workspaces pass",
+    "serverTests": "15 pass, 0 fail",
+    "unsignedBrowserTests": "8 pass, 0 fail"
+  },
+  "images": [
+    {
+      "name": "clerk-login.png",
+      "sha256": "96619fee4bea8c168c2a7addb68c6f11ca6f218c26506b6be7523a696cc0567b",
+      "capturedUtc": "2026-10-31T09:34:21.005034+00:00"
+    },
+    {
+      "name": "authenticated-drivers.png",
+      "sha256": "93ec8eeba17cc09baf08983d77515819f432db469a86c4b1e58e45f76ecf8af5",
+      "capturedUtc": "2026-10-31T09:33:48.490260+00:00"
+    }
+  ],
+  "productionChanges": false,
+  "clerkApplicationSettingsChanged": false
+}
