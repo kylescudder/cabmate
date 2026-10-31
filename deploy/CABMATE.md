@@ -100,3 +100,27 @@ Rollback uses deploy-core's previous verified web image and saved approved
 routing/auth configuration. Do not roll back the database or restart/redeploy the
 broadcaster for a web-only failure. If radio integration fails, its unavailable
 state leaves the existing public audio contract and driving pages independent.
+
+## Approved hostname and database transition (31 October 2026)
+
+Kyle approved the DNS/Clerk plan and requested PostgreSQL and Drizzle naming updates.
+The production database becomes `cabmate`, with `cabmate_owner` and
+`cabmate_runtime`; credential references move to `projects/cabmate/`. Rename
+existing objects in place after draining connections; do not recreate users/data.
+The installed deploy-core hook must use the same database and role names before
+resuming automatic deployment. Keep service/image/repository names unchanged.
+
+`deploy/compose.legacy.yaml` supplies a separate, unprivileged redirect proxy.
+Register both old dashboard routes against `cabmate-legacy:8080` after Cabmate
+sign-in and the deployment revision pass. The proxy preserves both old ingest
+POST paths, `/healthz`, `/ws`, assets and RadioMax station APIs. It does not
+restart or reconfigure the broadcaster. The audio hostname remains separate.
+Set `LEGACY_APP_ORIGIN=https://ets2.kylescudder.co.uk` during the transition to
+retain exact origin checks for open pages; remove it once that window is over.
+Clerk's domain move invalidates previous sessions regardless of this allowance.
+
+Set runtime `APP_ORIGIN` to `https://cabmate.kylescudder.co.uk`, match the new
+Clerk publishable key in the build and runtime, and update `ETS2_BASE_URL` only
+after new-host acceptance succeeds. Drizzle's existing saved connection should
+be renamed to `Cabmate` using `cabmate_runtime` against `cabmate`, preserving
+its saved ID and the other connections.

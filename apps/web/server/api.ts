@@ -1,4 +1,5 @@
 import { radioState } from './radio';
+import { validAppOrigin } from './origin';
 import { randomUUID } from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -83,7 +84,7 @@ export function createApi(getDb: () => Database, getIdentity: () => Promise<stri
       const identity = await getIdentity();
       if (!identity) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: { 'cache-control': 'no-store' } });
       // Every mutation uses same-origin JSON. Agent ingestion uses a separate bearer credential.
-      if (request.method !== 'GET' && (request.headers.get('origin') !== (process.env.APP_ORIGIN || origin) || !request.headers.get('content-type')?.startsWith('application/json'))) {
+      if (request.method !== 'GET' && (!validAppOrigin(request, origin) || !request.headers.get('content-type')?.startsWith('application/json'))) {
         return Response.json({ error: 'Invalid request origin' }, { status: 403 });
       }
       const db = getDb();
