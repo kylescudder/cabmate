@@ -34,7 +34,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function Root() {
   const { queryClient } = Route.useRouteContext();
   const app = <QueryClientProvider client={queryClient}><UnitsProvider><Outlet /></UnitsProvider></QueryClientProvider>;
-  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance}>{app}</ClerkProvider> : app;
+  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance} localization={{
+    signIn: { start: { title: 'Sign in to Cabmate', titleCombined: 'Continue to Cabmate' },
+      password: { subtitle: 'to continue to Cabmate' }, emailCode: { subtitle: 'to continue to Cabmate' }, emailCodeMfa: { subtitle: 'to continue to Cabmate' } },
+    signUp: { start: { title: 'Join Cabmate' } },
+  }}>{app}</ClerkProvider> : app;
 }
 function Document({ children }: { children: ReactNode }) {
   return <html lang="en"><head><HeadContent /></head><body className="min-h-screen">{children}<Scripts /></body></html>;

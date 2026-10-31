@@ -89,3 +89,7 @@ again — accounts now use Clerk.
 ## Deployment
 
 Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).
+
+## Real Clerk development check
+
+`bun run test:clerk` is an opt-in test against a locally running build with real development keys and the existing test account. It verifies protected pages, profile persistence, the live socket and sign-out against disposable storage. See [the setup and evidence](verification/companion-merge/clerk-development.md); credentials are never committed or required by the default CI suite.

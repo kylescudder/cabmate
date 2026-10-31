@@ -86,12 +86,9 @@ production relay/hardening and the rollup LaunchAgent have not been inspected.
 RadioMax's checked-in deployment docs describe retired infrastructure; do not use
 them to recreate it. Keep the required current audio hostname and HTTP contract.
 
-No Clerk test credentials were available: successful sign-in/sign-out, protected
-page appearance and authenticated profile writes remain unverified in a browser.
-The tests prove signed-out denial and existing authenticated API behavior via the
-repository's identity-injected integration seam, not a real Clerk session.
-Production cutover must verify real Clerk sessions, existing installed senders,
-HTTP/ICY/decoding, audio continuity through actual deployment, token protection,
-and game playback. Read the actual host instructions and save DNS-before records
-before proposing/applying the final approved cutover. Both old hosts and repos
-remain intact.
+The initial run did not discover the available development credentials. This was
+corrected in [the Clerk development follow-up](clerk-development.md): real Clerk
+session authorization, persisted local profile edits, authenticated live socket,
+navigation/reload and sign-out now pass using the existing development account.
+The manual password-plus-email-code flow and production-domain/cutover checks
+remain separate limitations. No production configuration has been changed.
