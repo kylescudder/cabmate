@@ -1,0 +1,216 @@
+# RadioMax broadcaster (Cabmate)
+
+This service is maintained in [`kylescudder/cabmate`](https://github.com/kylescudder/cabmate)
+under `services/radio-max`. Run the commands below from this directory. It has
+its own Bun workspace and lockfile so the web app and broadcaster can build and
+release independently. See [repository consolidation](../../deploy/REPOSITORY-CONSOLIDATION.md)
+for release setup and the outstanding ingress change.
+
+# radio-max
+
+A small Icecast/Shoutcast-style MP3 streaming server for Euro Truck Simulator 2,
+with a live dashboard.
+
+The host preview deployment is documented in [deploy/README.md](deploy/README.md).
+The dashboard and stream run in one restricted container; the public preview blocks audio, and
+public audio routing and the production cutover are deferred.
+
+- **Server**: Bun + TypeScript. Streams `.mp3` files from disk on a real-time
+  schedule (paced to the configured bitrate), with proper `icy-metaint`
+  metadata blocks injected for ICY-aware clients.
+- **Dashboard**: Astro + TypeScript, no UI framework. Connects to the server over
+  a WebSocket and re-renders only when state changes — no polling. Final
+  bundle is ~2.5 KB gzipped.
+
+```
+server/                   Bun service (deploy to Hetzner)
+├─ src/server.ts          HTTP + WS entry
+├─ src/station.ts         per-station broadcast loop
+├─ src/icy.ts             icy-metaint helpers
+├─ stations.json          station + bitrate config
+└─ audio/<station_id>/    .mp3 files for each station
+
+web/                      Astro dashboard (served by the Bun service)
+├─ src/main.ts
+├─ src/dashboard.css
+├─ src/pages/index.astro  page markup
+├─ astro.config.mjs
+└─ .env.example           PUBLIC_API_ORIGIN documentation
+```
+
+## Quick start (local)
+
+```bash
+bun install
+bun run dev
+```
+
+The server listens on `http://localhost:8080` and serves:
+
+- `GET /radio/<station_id>` — the MP3 stream (this is the URL you give ETS2)
+- `GET /api/state` — JSON snapshot of all stations
+- `GET /api/ws` — WebSocket; receives `{type:"state", stations:[…]}`
+  on every state change (track flip, listener
+  join/leave)
+- `HEAD /radio/<station_id>` — ICY header probe (ETS2 issues these)
+- `GET /healthz` — `{"ok":true,"revision":"<sha>"}`, `Cache-Control: no-store`
+  (every dashboard and health response also carries `X-Radio-Max-Revision`)
+
+Verify with curl:
+
+```bash
+curl -s http://localhost:8080/api/state | jq
+curl -sI http://localhost:8080/radio/main
+curl -H 'Icy-MetaData: 1' http://localhost:8080/radio/main | head -c 100 | xxd
+```
+
+## Adding stations
+
+Edit `server/stations.json`:
+
+```json
+{
+  "bitrateKbps": 128,
+  "sampleRateHz": 44100,
+  "icyMetaInt": 16000,
+  "publicUrl": "http://api.radio-max.kylescudder.co.uk",
+  "stations": [
+    { "id": "main", "name": "RadioMax", "genre": "Gaming Music" },
+    { "id": "drives", "name": "RadioMax Drives", "genre": "Rock" }
+  ]
+}
+```
+
+Then drop `.mp3` files into `server/audio/<station_id>/`. Files are loaded
+alphabetically and looped. Restart the server to pick up changes.
+
+> **Source files must match `bitrateKbps`.** The server paces bytes at the
+> configured bitrate — it does not transcode. If you mix 192 kbps and 128 kbps
+> files in the same station, playback speed will be wrong. Re-encode with
+> `ffmpeg -i in.mp3 -b:a 128k out.mp3` first.
+
+## Configuration
+
+| env var            | default         | purpose                                        |
+| ------------------ | --------------- | ---------------------------------------------- |
+| `PORT`             | `8080`          | listen port                                    |
+| `CONFIG_PATH`      | `stations.json` | path to config file                            |
+| `AUDIO_ROOT`       | `audio`         | directory containing `<station_id>/` subdirs   |
+| `DASHBOARD_ORIGIN` | `*`             | exact origin allowed for `/api/*` + WS, or `*` |
+
+In production, set `DASHBOARD_ORIGIN` to your dashboard URL (e.g.
+`https://radio.example.com`) so the WS endpoint rejects other origins.
+
+## Deploying to Hetzner
+
+Build is one binary path: `bun src/server.ts`. Use a systemd unit:
+
+```ini
+# /etc/systemd/system/radio-max.service
+[Unit]
+Description=radio-max
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/radio-max/server
+ExecStart=/root/.bun/bin/bun src/server.ts
+Restart=always
+RestartSec=2
+Environment=PORT=8080
+Environment=DASHBOARD_ORIGIN=https://radio-max.kylescudder.co.uk
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+systemctl daemon-reload
+systemctl enable --now radio-max
+journalctl -u radio-max -f
+```
+
+### Caddyfile (dual HTTP/HTTPS)
+
+ETS2 needs plain HTTP. The browser dashboard (on HTTPS) needs HTTPS. Caddy
+listens on both for the API host:
+
+```caddy
+api.radio-max.kylescudder.co.uk {
+    reverse_proxy localhost:8080
+}
+
+http://api.radio-max.kylescudder.co.uk {
+    reverse_proxy localhost:8080
+}
+```
+
+The HTTPS block auto-provisions a Let's Encrypt cert. ETS2 hits
+`http://api.radio-max.kylescudder.co.uk/radio/main`, the dashboard hits
+`https://api.radio-max.kylescudder.co.uk/api/ws` — same Bun process serves both.
+
+## Deploying the dashboard
+
+Production serves the dashboard from the same container as the stream (see
+[deploy/README.md](deploy/README.md)): the Bun server serves the static Astro
+build in `web/dist/` and caches fingerprinted `/_astro/` files forever.
+
+### Local dev
+
+```bash
+bun install          # one workspace: server/ and web/
+bun run dev          # radio server on http://localhost:8080
+bun run dev:web      # dashboard on http://localhost:4321
+```
+
+With no `PUBLIC_API_ORIGIN` set, the dashboard talks to the same origin it's
+served from. To point the dev dashboard at a radio server, drop a
+`web/.env.local`:
+
+```
+PUBLIC_API_ORIGIN=http://localhost:8080
+```
+
+Astro inlines `PUBLIC_*` variables at build time. `DASHBOARD_ORIGIN` on the
+radio server must match the dashboard's exact origin, or the WebSocket is
+rejected.
+
+## Scripts
+
+| Script              | Purpose                                               |
+| ------------------- | ----------------------------------------------------- |
+| `bun run typecheck` | `tsc` for the server, `astro check` for the dashboard |
+| `bun run test`      | Server stream, eviction and limit tests               |
+| `bun run test:e2e`  | Playwright dashboard journey against a real server    |
+| `bun run build`     | Static dashboard in `web/dist/`                       |
+| `bun run format`    | Prettier with the house style                         |
+
+## ETS2 setup
+
+Add to `Documents/Euro Truck Simulator 2/live_streams.sii`:
+
+```
+stream_data[]: "http://api.radio-max.kylescudder.co.uk/radio/main|RadioMax|Gaming Music|EN|128|1"
+```
+
+Format: `URL|name|genre|language|bitrate|favorite`. The dashboard's "ETS2 URL" field
+gives you the pre-formatted string.
+
+## What changed from the old server
+
+The previous Node/Express server crashed under modest load on a CX21 because:
+
+1. **Broadcast tick was faster than playback** — 1 KB every 50 ms is ~160 kbps;
+   the source is 128 kbps. Slow clients couldn't drain fast enough, Node
+   buffered the overflow in memory until OOM.
+2. **`icy-metaint: 16000` was advertised, but no metadata blocks were ever
+   inserted** — clients reading the byte stream interpreted random audio bytes
+   as the metadata length prefix, corrupting the stream.
+3. **Per-request `console.log`** on every `/stations`/`/clients` poll. The
+   old dashboard polled both endpoints every 2 seconds per tab, which
+   amplified into hundreds of synchronous stdout writes per second under
+   even one tab.
+
+This rewrite paces to the exact bitrate, emits standards-compliant
+`icy-metaint` blocks, pushes dashboard updates over WebSocket on change only,
+and logs only startup + errors.

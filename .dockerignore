@@ -10,7 +10,7 @@ supabase
 deploy/projects
 deploy/secrets
 
-# Local reference checkout and browser evidence
-radio-max
+# Broadcaster has its own Docker build context
+services/radio-max
 test-results
 playwright-report

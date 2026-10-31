@@ -62,3 +62,12 @@ Herman via `deploy-core` — CI-built, attested images deployed by digest. See `
 `compose.yaml` is the host compose file; `docker-compose.yml` is local dev Postgres only.
 Migrations run as the owner role in the `prepare` hook and grant the runtime role data access
 (`DATABASE_RUNTIME_ROLE`); the app container never runs DDL.
+
+## RadioMax broadcaster
+
+All RadioMax source now lives in `services/radio-max`, an independent Bun 1.4.4
+workspace/lockfile. Use root `radio:install`, `radio:dev`, `radio:test`,
+`radio:typecheck` and `radio:build` scripts, or work from that directory.
+CI/release workflows live at the repository root (`ci-radio.yml`,
+`release-radio.yml`). Preserve the separate broadcaster runtime and audio URLs;
+see `deploy/REPOSITORY-CONSOLIDATION.md` for deployment trust and credential setup.

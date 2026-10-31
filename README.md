@@ -13,6 +13,7 @@ and how your journeys add up. Tune into RadioMax from the same app.
 apps/client     Windows telemetry agent, reads scs-sdk-plugin shared memory
 apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — companion UI
                 and the JSON API, served by one Bun process (server/index.ts)
+services/radio-max  RadioMax broadcaster, relay, legacy dashboard and deployment tests
 packages/shared Zod schemas / TS types for the ingest wire format
 ```
 
@@ -85,6 +86,22 @@ Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
 
 Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard
 again — accounts now use Clerk.
+
+## Broadcaster development
+
+All active source lives in this repository. RadioMax remains a separate runtime
+service with its own Bun workspace and lockfile under `services/radio-max`.
+
+```bash
+bun run radio:install
+bun run radio:dev
+bun run radio:test
+bun run radio:typecheck
+bun run radio:build
+```
+
+See [repository consolidation](deploy/REPOSITORY-CONSOLIDATION.md) for preserved
+history, outstanding work and broadcaster release setup.
 
 ## Deployment
 

@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+.env
+.env.local
+*.log
+.env.*
+!**/.env.example
+state/
+secrets/
+__pycache__/
+deploy-spool/
+deployment.json
+dist/
+.astro/
+playwright-report/
+test-results/

@@ -1,5 +1,10 @@
 # Cabmate: merged web app rollout
 
+> Repository consolidation supersedes the references below to keeping two active
+> repositories: both services now live in Cabmate. See
+> [repository consolidation](REPOSITORY-CONSOLIDATION.md). The runtime, hostnames,
+> audio contract and deployment approval requirements remain separate.
+
 Kyle chose Cabmate on 31 October 2026. RadioMax remains the station name.
 This is the implementation plan for an approved future rollout, not a record of
 production changes. The canonical proposed hostname is
