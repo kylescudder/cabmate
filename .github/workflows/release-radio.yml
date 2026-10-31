@@ -1,10 +1,14 @@
-# Publishes a checked, attested image for every commit on main. GitHub holds
+# Publishes a checked, attested broadcaster image when publishing is enabled. GitHub holds
 # only webhook/Access credentials, never shell access.
-name: Release
+name: Radio Release
 
 on:
   push:
     branches: [main]
+    paths:
+      - services/radio-max/**
+      - .github/workflows/ci-radio.yml
+      - .github/workflows/release-radio.yml
   workflow_dispatch:
 
 permissions:
@@ -19,9 +23,10 @@ env:
 
 jobs:
   ci:
-    uses: ./.github/workflows/ci.yml
+    uses: ./.github/workflows/ci-radio.yml
 
   build:
+    if: github.event_name == 'workflow_dispatch' || vars.RADIO_RELEASE_ENABLED == 'true'
     needs: ci
     strategy:
       matrix:
@@ -48,7 +53,7 @@ jobs:
       - id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: .
+          context: services/radio-max
           platforms: ${{ matrix.platform }}
           outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
           labels: |
@@ -120,7 +125,7 @@ jobs:
   # secret can only ever trigger a release that this workflow built from main.
   deploy:
     needs: publish
-    if: vars.DEPLOY_ENABLED == 'true'
+    if: vars.RADIO_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -128,10 +133,10 @@ jobs:
       packages: read
       attestations: read
     environment:
-      name: production
+      name: radio-production
       url: ${{ vars.RADIO_MAX_BASE_URL }}
     concurrency:
-      group: production
+      group: radio-production
       cancel-in-progress: false
     env:
       DEPLOY_URL: https://deploy-radio-max.kylescudder.co.uk/hooks/radio-max

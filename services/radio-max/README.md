@@ -1,3 +1,11 @@
+# RadioMax broadcaster (Cabmate)
+
+This service is maintained in [`kylescudder/cabmate`](https://github.com/kylescudder/cabmate)
+under `services/radio-max`. Run the commands below from this directory. It has
+its own Bun workspace and lockfile so the web app and broadcaster can build and
+release independently. See [repository consolidation](../../deploy/REPOSITORY-CONSOLIDATION.md)
+for release setup and the outstanding ingress change.
+
 # radio-max
 
 A small Icecast/Shoutcast-style MP3 streaming server for Euro Truck Simulator 2,

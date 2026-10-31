@@ -19,7 +19,7 @@ RUN bun run typecheck && bun run test && bun run build
 FROM ${BUN_IMAGE} AS runtime
 WORKDIR /app/server
 ARG RADIO_MAX_REVISION=development
-LABEL org.opencontainers.image.source="https://github.com/kylescudder/radio-max" \
+LABEL org.opencontainers.image.source="https://github.com/kylescudder/cabmate" \
       org.opencontainers.image.revision="${RADIO_MAX_REVISION}"
 ENV NODE_ENV=production PORT=8080 WEB_ROOT=/app/web \
     RADIO_MAX_REVISION=${RADIO_MAX_REVISION}

@@ -1,5 +1,5 @@
 {
-  "name": "ets2-data-dashboard",
+  "name": "cabmate",
   "private": true,
   "version": "0.0.1",
   "packageManager": "bun@1.4.4",
@@ -22,7 +22,12 @@
     "db:import": "bun run --filter @ets2/web db:import",
     "simulate": "bun run scripts/simulate.ts",
     "test:e2e": "playwright test",
-    "test:clerk": "playwright test --config playwright.clerk.config.ts"
+    "test:clerk": "playwright test --config playwright.clerk.config.ts",
+    "radio:install": "cd services/radio-max && bun install --frozen-lockfile",
+    "radio:dev": "cd services/radio-max && bun run dev",
+    "radio:build": "cd services/radio-max && bun run build",
+    "radio:test": "cd services/radio-max && bun run test",
+    "radio:typecheck": "cd services/radio-max && bun run typecheck"
   },
   "devDependencies": {
     "@clerk/testing": "^2.2.53",
