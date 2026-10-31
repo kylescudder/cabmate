@@ -1,5 +1,7 @@
 # Deploying to Herman
 
+Cabmate integration and the approval-gated hostname rollout are documented in [CABMATE.md](CABMATE.md). Existing deployment identifiers remain unchanged.
+
 ETS2 follows the house deployment model in `deploy-core`: GitHub Actions builds
 and attests a multi-arch image for every commit on `main`, and Herman's
 deploy service pulls the release **by digest**, runs the app hooks, and swaps

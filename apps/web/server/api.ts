@@ -1,3 +1,4 @@
+import { radioState } from './radio';
 import { randomUUID } from 'node:crypto';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
@@ -74,6 +75,7 @@ export function createApi(getDb: () => Database, getIdentity: () => Promise<stri
   return async (request: Request): Promise<Response> => {
     const { pathname, origin } = new URL(request.url);
     try {
+      if (pathname === '/api/radio/state') return await radioState(request);
       if (request.method === 'POST' && (pathname === '/api/ingest' || pathname === '/functions/v1/ingest')) {
         if (Number(request.headers.get('content-length') ?? 0) > 512_000) return Response.json({ error: 'Payload too large' }, { status: 413 });
         return await ingest(getDb(), request);

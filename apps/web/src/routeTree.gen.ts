@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DashboardRouteImport } from './routes/_dashboard'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as RadioRouteImport } from './routes/radio'
 import { Route as DashboardIndexRouteImport } from './routes/_dashboard.index'
 import { Route as DashboardDriversRouteImport } from './routes/_dashboard.drivers'
 import { Route as DashboardLeaderboardRouteImport } from './routes/_dashboard.leaderboard'
@@ -26,6 +27,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadioRoute = RadioRouteImport.update({
+  id: '/radio',
+  path: '/radio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
@@ -67,6 +73,7 @@ const FunctionsV1IngestRoute = FunctionsV1IngestRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof DashboardIndexRoute
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/drivers': typeof DashboardDriversRoute
   '/leaderboard': typeof DashboardLeaderboardRoute
   '/profile': typeof DashboardProfileRoute
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/drivers': typeof DashboardDriversRoute
   '/leaderboard': typeof DashboardLeaderboardRoute
   '/profile': typeof DashboardProfileRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/_dashboard/drivers': typeof DashboardDriversRoute
   '/_dashboard/leaderboard': typeof DashboardLeaderboardRoute
   '/_dashboard/profile': typeof DashboardProfileRoute
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/radio'
     | '/drivers'
     | '/leaderboard'
     | '/profile'
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/radio'
     | '/drivers'
     | '/leaderboard'
     | '/profile'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_dashboard'
     | '/login'
+    | '/radio'
     | '/_dashboard/drivers'
     | '/_dashboard/leaderboard'
     | '/_dashboard/profile'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
+  RadioRoute: typeof RadioRoute
   ApiSplatRoute: typeof ApiSplatRoute
   FunctionsV1IngestRoute: typeof FunctionsV1IngestRoute
 }
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radio': {
+      id: '/radio'
+      path: '/radio'
+      fullPath: '/radio'
+      preLoaderRoute: typeof RadioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_dashboard/': {
@@ -228,6 +248,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
+  RadioRoute: RadioRoute,
   ApiSplatRoute: ApiSplatRoute,
   FunctionsV1IngestRoute: FunctionsV1IngestRoute,
 }

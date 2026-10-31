@@ -1,16 +1,17 @@
-<img src="apps/web/public/favicon.svg" alt="" width="64" height="64">
+# Cabmate
 
-# ETS2 Friends Tracker
+Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Ingests Euro Truck Simulator 2 telemetry from friends' PCs, stores it in
-PostgreSQL, and shows live + historical dashboards so you can see what
-everyone is hauling.
+Public radio lives at `/radio`; driving and profile pages use Clerk. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
+
+Connect your gaming PC to see where your friends are driving, what they’re hauling,
+and how your journeys add up. Tune into RadioMax from the same app.
 
 ## Architecture
 
 ```
 apps/client     Windows telemetry agent, reads scs-sdk-plugin shared memory
-apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — dashboard UI
+apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — companion UI
                 and the JSON API, served by one Bun process (server/index.ts)
 packages/shared Zod schemas / TS types for the ingest wire format
 ```

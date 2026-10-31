@@ -22,14 +22,14 @@ const clerkAppearance = {
 };
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Euro Truck Simulator 2 Data Dashboard' }, { name: 'theme-color', content: '#121826' }],
+  head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Cabmate — Your ETS2 companion' }, { name: 'theme-color', content: '#121826' }],
     links: [
-      { rel: 'icon', href: '/favicon.ico', sizes: '32x32' }, { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
-      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }, { rel: 'manifest', href: '/site.webmanifest' },
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'apple-touch-icon', href: '/icon-512.png' }, { rel: 'manifest', href: '/site.webmanifest' },
     ] }),
   component: Root, shellComponent: Document,
   notFoundComponent: () => <p className="p-8">Page not found.</p>,
-  errorComponent: () => <p role="alert" className="p-8">Unable to load the dashboard. Please try again.</p>,
+  errorComponent: () => <p role="alert" className="p-8">Unable to load Cabmate. Please try again.</p>,
 });
 function Root() {
   const { queryClient } = Route.useRouteContext();
