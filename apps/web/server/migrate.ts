@@ -6,7 +6,7 @@ import { databaseUrl } from './connection';
 // Herman runs this as the owner role; the app itself connects as a runtime role with data access only.
 const runtimeRole = process.env.DATABASE_RUNTIME_ROLE;
 if (runtimeRole && !/^[a-z_][a-z0-9_]*$/.test(runtimeRole)) throw new Error('Invalid DATABASE_RUNTIME_ROLE');
-const client = postgres(databaseUrl(), { max: 1, onnotice: () => {} });
+const client = postgres(databaseUrl(), { max: 1, idle_timeout: 20, connect_timeout: 10, onnotice: () => {} });
 try {
   await migrate(drizzle(client), { migrationsFolder: new URL('../drizzle', import.meta.url).pathname, migrationsSchema: 'drizzle' });
   if (runtimeRole) {

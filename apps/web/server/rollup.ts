@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
-import { connect } from './db';
+import { connectOneShot } from './db';
 import { steps } from './distance';
-const { db, client } = connect();
+const { db, client } = connectOneShot();
 try {
   await db.transaction(async tx => {
     // Work on whole days, so a minute can never be partially aggregated and later discarded.

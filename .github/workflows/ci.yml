@@ -32,6 +32,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run db:migrate
       - run: bun run test
+      - run: bun run test:db-budget
+        env:
+          BUDGET_TEST_ADMIN_URL: postgres://ets2:ets2@127.0.0.1:5432/ets2_test
       - run: bun run build
       - run: bun run typecheck
       - run: bunx --no-install playwright install --with-deps chromium
