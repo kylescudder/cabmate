@@ -40,6 +40,12 @@ AGENT_API_KEY=<key> bun run simulate
 Checks: `bun run test` (needs a migrated database — uses `TEST_DATABASE_URL`
 or `DATABASE_URL`, and **truncates it**), `bun run typecheck`, `bun run build`.
 
+`bun run test:db-budget` separately verifies the real query pool, LISTEN/reconnect,
+isolated health, one-shot work and the eight-slot runtime-role limit against
+disposable PostgreSQL. It requires an explicit `BUDGET_TEST_ADMIN_URL` and creates
+and removes its own uniquely named test database/roles. See
+[the connection budget and test setup](deploy/README.md#connection-budget).
+
 ## Identity
 
 Dashboard users sign in with Clerk. On first visit each Clerk user gets a

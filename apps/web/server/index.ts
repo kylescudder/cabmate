@@ -1,6 +1,7 @@
 import { join, normalize } from 'node:path';
 import { database } from './db';
 import { sql } from 'drizzle-orm';
+import { healthResponse } from './health';
 import { authorizeSocket, liveSocket, startLive, type SocketData } from './live';
 
 const revision = process.env.ETS2_REVISION || 'development';
@@ -23,10 +24,7 @@ const server = Bun.serve<SocketData>({
       else if (server.upgrade(request, { data: {} })) return;
       else response = new Response('WebSocket upgrade required', { status: 426 });
     } else if (pathname === '/healthz') {
-      try {
-        await database().execute(sql`select id from users limit 0`);
-        response = Response.json({ status: 'ok', revision }, { headers: { 'cache-control': 'no-store' } });
-      } catch { response = Response.json({ status: 'unavailable' }, { status: 503 }); }
+      response = await healthResponse(revision);
     } else if (request.method === 'GET' || request.method === 'HEAD') {
       try {
         const path = normalize(join(directory, decodeURIComponent(pathname)));
