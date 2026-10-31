@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^3.26.3",
+    "@clerk/shared": "4.42.0",
     "@clerk/tanstack-react-start": "^1.7.3",
     "@ets2/shared": "workspace:*",
     "@tanstack/react-query": "^5.90.21",

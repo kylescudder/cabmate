@@ -12,6 +12,7 @@ services:
         aliases: [cabmate-legacy]
     read_only: true
     cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     security_opt: [no-new-privileges:true]
     tmpfs:
       - /config:uid=501,gid=20,mode=0700

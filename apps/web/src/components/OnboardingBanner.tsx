@@ -31,7 +31,7 @@ export function OnboardingBanner() {
           Download the latest{" "}
           <a
             className="underline hover:text-accent"
-            href="https://github.com/kylescudder/ets2-data-dashboard/releases/"
+            href="https://github.com/kylescudder/cabmate/releases/"
             target="_blank"
             rel="noreferrer"
           >
