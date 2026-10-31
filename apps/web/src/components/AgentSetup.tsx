@@ -8,7 +8,7 @@ interface AgentSetupProps {
 }
 
 const AGENT_DOWNLOAD_URL =
-  "https://github.com/kylescudder/ets2-data-dashboard/releases/latest/download/ets2-tracker.exe";
+  "https://github.com/kylescudder/cabmate/releases/latest/download/ets2-tracker.exe";
 
 export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
   const queries = useQueryClient();

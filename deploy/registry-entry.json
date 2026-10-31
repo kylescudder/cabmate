@@ -1,7 +1,7 @@
 {
   "name": "ets2-data-dashboard",
   "title": "ETS2 Data Dashboard",
-  "repo": "kylescudder/ets2-data-dashboard",
+  "repo": "kylescudder/cabmate",
   "image": "ghcr.io/kylescudder/ets2-data-dashboard",
   "image_var": "ETS2_IMAGE",
   "service": "web",

@@ -18,7 +18,7 @@ RUN rm -rf node_modules apps/web/node_modules apps/client/node_modules packages/
 FROM oven/bun:1.4.4@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d AS runtime
 WORKDIR /app
 ARG ETS2_REVISION=development
-LABEL org.opencontainers.image.source="https://github.com/kylescudder/ets2-data-dashboard" \
+LABEL org.opencontainers.image.source="https://github.com/kylescudder/cabmate" \
       org.opencontainers.image.revision="${ETS2_REVISION}"
 ENV NODE_ENV=production PORT=3000 ETS2_REVISION=${ETS2_REVISION}
 COPY --from=production-dependencies --chown=bun:bun /app/node_modules ./node_modules
