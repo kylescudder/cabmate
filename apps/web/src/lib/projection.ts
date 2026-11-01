@@ -18,10 +18,10 @@ export const ETS2_MAP_BOUNDS: [[number, number], [number, number]] = [
 export const ETS2_MAP_CENTER: [number, number] = [-MAP_UNITS / 2, MAP_UNITS / 2];
 
 export function simToMapPoint(x: number, z: number): [number, number] {
-  // Live SCS telemetry uses the opposite X direction from the exported tile map.
-  const mapX = -x;
-  const nx = (mapX - ETS2_MAP_INFO.x1) / (ETS2_MAP_INFO.x2 - ETS2_MAP_INFO.x1);
+  const nx = (x - ETS2_MAP_INFO.x1) / (ETS2_MAP_INFO.x2 - ETS2_MAP_INFO.x1);
   const ny = (z - ETS2_MAP_INFO.y1) / (ETS2_MAP_INFO.y2 - ETS2_MAP_INFO.y1);
 
-  return [(ny - 1) * MAP_UNITS, nx * MAP_UNITS];
+  // Game X runs east and Z runs south, the same as the tiles. L.CRS.Simple draws
+  // pixel y as -lat, so the top edge of the map is lat 0 and south is negative.
+  return [-ny * MAP_UNITS, nx * MAP_UNITS];
 }
