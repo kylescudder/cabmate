@@ -6,6 +6,8 @@ export interface ClientConfig {
   ingestUrl: string;
   apiKey: string;
   configDir: string;
+  /** Linux only: where the Proton bridge mirrors SCSTelemetry (default: auto-detect in /dev/shm). */
+  shmPath?: string;
 }
 
 const TEMPLATE = {
@@ -33,5 +35,5 @@ export function loadConfig(): ClientConfig {
   if (!ingestUrl || !raw.apiKey) {
     throw new Error(`${configPath} is missing ingestUrl or apiKey`);
   }
-  return { ingestUrl, apiKey: raw.apiKey, configDir };
+  return { ingestUrl, apiKey: raw.apiKey, configDir, shmPath: raw.shmPath };
 }

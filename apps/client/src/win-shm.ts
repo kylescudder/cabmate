@@ -1,4 +1,5 @@
 import koffi from "koffi";
+import { SHM_SIZE, type TelemetryMap } from "./telemetry-map.js";
 
 // Windows shared-memory access for the scs-sdk-plugin telemetry block.
 // The plugin creates a 32 KiB file mapping named "Local\\SCSTelemetry" while
@@ -7,7 +8,6 @@ import koffi from "koffi";
 
 const FILE_MAP_READ = 0x0004;
 const SHM_NAME = "Local\\SCSTelemetry";
-const SHM_SIZE = 32 * 1024;
 
 const kernel32 = koffi.load("kernel32.dll");
 
@@ -31,11 +31,6 @@ const UnmapViewOfFile = kernel32.func(
 );
 const CloseHandle = kernel32.func("__stdcall", "CloseHandle", "bool", ["void *"]);
 const GetLastError = kernel32.func("__stdcall", "GetLastError", "uint32", []);
-
-export interface TelemetryMap {
-  read(): Buffer;
-  close(): void;
-}
 
 export function openTelemetryMap(): TelemetryMap {
   const handle = OpenFileMappingA(FILE_MAP_READ, false, SHM_NAME);
