@@ -64,6 +64,35 @@ export function OnboardingBanner() {
         </li>
       </ol>
 
+      <div className="text-sm text-slate-300 space-y-2">
+        <p className="font-semibold">Playing on Linux with Proton?</p>
+        <p>
+          Pick a Proton version under <span className="font-semibold">Properties</span> →{" "}
+          <span className="font-semibold">Compatibility</span> →{" "}
+          <span className="font-semibold">Select compatibility tool</span>, install
+          scs-sdk-plugin into the same <code className="text-xs">bin\win_x64\plugins</code>{" "}
+          folder, and install{" "}
+          <a
+            className="underline hover:text-accent"
+            href="https://github.com/srounce/winecarte"
+            target="_blank"
+            rel="noreferrer"
+          >
+            winecarte
+          </a>{" "}
+          into <code className="text-xs">~/.local/bin/</code> so the telemetry shows
+          up in <code className="text-xs">/dev/shm</code>. Put
+          the Linux <code className="text-xs">ets2-tracker</code> build and{" "}
+          <code className="text-xs">config.json</code> in{" "}
+          <code className="text-xs">~/.ets2-tracker/</code>, run{" "}
+          <code className="text-xs">chmod +x ~/.ets2-tracker/ets2-tracker</code>, then use
+          these launch options:
+        </p>
+        <pre className="rounded border border-edge bg-ink px-3 py-2 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+{`~/.ets2-tracker/ets2-tracker ~/.local/bin/winecarte-run %command% -developer -console`}
+        </pre>
+      </div>
+
       <p className="text-xs text-slate-500 pt-2 border-t border-edge">
         This panel disappears once your first driving session arrives.
       </p>

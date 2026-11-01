@@ -9,6 +9,8 @@ interface AgentSetupProps {
 
 const AGENT_DOWNLOAD_URL =
   "https://github.com/kylescudder/cabmate/releases/latest/download/ets2-tracker.exe";
+const LINUX_AGENT_DOWNLOAD_URL =
+  "https://github.com/kylescudder/cabmate/releases/latest/download/ets2-tracker";
 
 export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
   const queries = useQueryClient();
@@ -60,7 +62,9 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
           The Windows companion uses this key to connect your game to Cabmate.
           Download the .exe, drop the config snippet into
           <code className="mx-1">%USERPROFILE%\.ets2-tracker\config.json</code>,
-          then double-click the .exe with ETS2 running.
+          then double-click the .exe with ETS2 running. Playing on Linux with
+          Proton? Use the Linux build and
+          <code className="mx-1">~/.ets2-tracker/config.json</code> instead.
         </p>
       </div>
 
@@ -69,6 +73,12 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
         className="inline-flex items-center justify-center rounded bg-accent text-ink font-semibold px-4 py-2 hover:brightness-110"
       >
         Download ets2-tracker.exe
+      </a>
+      <a
+        href={LINUX_AGENT_DOWNLOAD_URL}
+        className="ml-2 inline-flex items-center justify-center rounded border border-edge bg-ink px-4 py-2 text-sm hover:border-accent"
+      >
+        Linux (Proton)
       </a>
 
       <div>

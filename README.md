@@ -10,7 +10,7 @@ and how your journeys add up. Tune into RadioMax from the same app.
 ## Architecture
 
 ```
-apps/client     Windows telemetry agent, reads scs-sdk-plugin shared memory
+apps/client     telemetry agent (Windows, or Linux + Proton), reads scs-sdk-plugin shared memory
 apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — companion UI
                 and the JSON API, served by one Bun process (server/index.ts)
 services/radio-max  RadioMax broadcaster, relay, legacy dashboard and deployment tests
@@ -67,7 +67,8 @@ Drizzle schema in `apps/web/server/schema.ts`, migrations in `apps/web/drizzle/`
 ## Real client (Windows)
 
 `apps/client` reads the `Local\SCSTelemetry` shared memory block exposed by
-[scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin). Windows-only.
+[scs-sdk-plugin](https://github.com/RenCloud/scs-sdk-plugin). For Linux with
+Proton, see [the next section](#real-client-linux--proton).
 
 1. Install scs-sdk-plugin into the ETS2/ATS `bin/win_x64/plugins/` folder.
 2. Sign in, open `/profile`, and copy the **config.json snippet** from the
@@ -92,6 +93,40 @@ Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
 
 Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard
 again — accounts now use Clerk.
+
+## Real client (Linux + Proton)
+
+Under Proton the game is the Windows build, so the plugin's shared memory only
+exists inside Wine. A bridge such as
+[winecarte](https://github.com/srounce/winecarte) mirrors it to `/dev/shm`, and
+the Linux agent (`ets2-tracker`, from the same release) reads it from there.
+
+1. In Steam, *Properties → Compatibility → Select compatibility tool*: pick
+   Proton Experimental or a numbered Proton (ETS2 also ships a native Linux
+   build, which this path does not cover).
+2. Install scs-sdk-plugin into `bin/win_x64/plugins/` exactly as on Windows.
+3. Install winecarte into `~/.local/bin/`.
+4. Put `ets2-tracker` and `config.json` (same snippet as above) in
+   `~/.ets2-tracker/`, then `chmod +x ~/.ets2-tracker/ets2-tracker`.
+5. Set the launch options to:
+   ```
+   ~/.ets2-tracker/ets2-tracker ~/.local/bin/winecarte-run %command% -developer -console
+   ```
+   The agent starts the game through winecarte and exits when it does. Keep the
+   full path: Steam started from the desktop often lacks the `PATH` your terminal
+   has, so `which winecarte-run` working does not mean Steam can find it.
+
+The agent looks for `/dev/shm/SCSTelemetry`, `/dev/shm/SHSCSTelemetry` and
+`/dev/shm/Local\SCSTelemetry`. If your bridge writes somewhere else, add
+`"shmPath": "/path/to/file"` to `config.json`. A file that stops changing for
+5 seconds counts as stale, so a mirror left behind after the game quits is
+never uploaded.
+
+Known gap: `winecarte-run` mirrors `Local\SHSCSTelemetry` for ETS2/ATS, but
+RenCloud's scs-sdk-plugin creates `Local\SCSTelemetry`, so that plugin's telemetry
+does not reach `/dev/shm` through a stock winecarte. Until winecarte supports it,
+change both ETS2/ATS `from_wine_args` in `crates/winecarte-core/src/games.rs` to
+`Local\SCSTelemetry|SCSTelemetry` and build your own `winecarte-run`.
 
 ## Broadcaster development
 

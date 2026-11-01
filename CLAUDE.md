@@ -54,7 +54,9 @@ Change the on-the-wire shape there, not in each app.
 - Plain Postgres only (no Timescale). Retention is `server/rollup.ts` (14 days raw, then per-minute rollups).
   Leaderboard and driver pages add the two for all-time stats; distance rules (odometer jumps ignored) live in `server/distance.ts`.
 
-**`apps/client`** is the Windows agent reading scs-sdk-plugin shared memory and POSTing batches.
+**`apps/client`** is the agent reading scs-sdk-plugin shared memory and POSTing batches. Windows maps
+`Local\SCSTelemetry` via koffi (`win-shm.ts`); Linux (game under Proton) reads the `/dev/shm` mirror a
+Wine bridge such as winecarte writes (`linux-shm.ts`, no FFI). `build:exe` / `build:linux` compile each.
 
 ## Deployment
 

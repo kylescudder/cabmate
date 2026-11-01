@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 import type { ActiveJob, IngestPayload, TelemetrySample, Truck } from "@ets2/shared";
 import { loadConfig } from "./config.js";
 import { BatchBuffer, type PendingBatch } from "./buffer.js";
-import { openTelemetryMap, type TelemetryMap } from "./win-shm.js";
+import type { TelemetryMap } from "./telemetry-map.js";
 import { decodeJob, decodeSample, decodeStatic } from "./scs-layout.js";
 
 // Sample at 1 Hz. 10 Hz was overkill — the map is plenty smooth at 1 Hz,
@@ -12,10 +12,15 @@ import { decodeJob, decodeSample, decodeStatic } from "./scs-layout.js";
 const SAMPLE_INTERVAL_MS = 1000;
 const FLUSH_INTERVAL_MS = 1000;
 
-if (process.platform !== "win32") {
-  console.error("ets2-client is Windows-only (Linux/Wine support dropped).");
+if (process.platform !== "win32" && process.platform !== "linux") {
+  console.error("ets2-client runs on Windows, or on Linux with the game under Steam Proton.");
   process.exit(1);
 }
+
+// Windows maps the plugin's named mapping via kernel32; Linux reads the copy a
+// Proton bridge mirrors into /dev/shm. Imported lazily so Linux never loads koffi.
+const { openTelemetryMap } =
+  process.platform === "win32" ? await import("./win-shm.js") : await import("./linux-shm.js");
 
 const config = loadConfig();
 const buffer = new BatchBuffer(config.configDir);
@@ -36,11 +41,16 @@ let warnedNotRunning = false;
 // when the game exits. With no args we run as a standalone agent — same as
 // double-clicking the .exe.
 //
+// On Linux, `ets2-tracker %command%` expands to Steam's reaper/Proton command
+// line rather than a game .exe, so any arguments at all mean "launch this".
+//
 // slice(2) because compiled bun binaries follow Node's argv layout:
 // argv[0] = exe path, argv[1] = embedded script path (e.g. B:/~BUN/root/…),
 // argv[2+] = user-provided args.
 const launchArgs = process.argv.slice(2);
-if (launchArgs.length >= 1 && /\.exe$/i.test(launchArgs[0])) {
+const isLaunchCommand =
+  launchArgs.length >= 1 && (process.platform !== "win32" || /\.exe$/i.test(launchArgs[0]));
+if (isLaunchCommand) {
   const [gameCmd, ...gameArgs] = launchArgs;
   console.log(`launcher mode: ${gameCmd} ${gameArgs.join(" ")}`);
   const child = spawn(gameCmd, gameArgs, {
@@ -49,6 +59,10 @@ if (launchArgs.length >= 1 && /\.exe$/i.test(launchArgs[0])) {
   });
   child.on("error", (err) => {
     console.error("failed to launch game:", err.message);
+    // No "exit" event follows a failed spawn. Staying up would leave Steam
+    // showing the game as running with nothing behind it.
+    map?.close();
+    process.exit(1);
   });
   child.on("exit", (code) => {
     console.log(`game exited (code ${code ?? "null"}); shutting down agent`);
@@ -59,7 +73,7 @@ if (launchArgs.length >= 1 && /\.exe$/i.test(launchArgs[0])) {
 
 function tryOpenMap(): boolean {
   try {
-    map = openTelemetryMap();
+    map = openTelemetryMap({ shmPath: config.shmPath });
     console.log("connected to SCS telemetry shared memory");
     warnedNotRunning = false;
     return true;
@@ -78,7 +92,7 @@ function sample() {
     tryOpenMap();
     return;
   }
-  let buf: Buffer;
+  let buf: Buffer | null;
   try {
     buf = map.read();
   } catch (err) {
@@ -87,6 +101,7 @@ function sample() {
     map = null;
     return;
   }
+  if (!buf) return;
 
   const stat = decodeStatic(buf);
   if (!stat.sdkActive || stat.paused) return;
@@ -141,7 +156,7 @@ async function flush() {
   await flushPending();
 }
 
-process.on("SIGINT", () => {
+function shutdown() {
   if (samples.length && lastTruck) {
     buffer.persist({
       apiKey: config.apiKey,
@@ -150,7 +165,11 @@ process.on("SIGINT", () => {
   }
   map?.close();
   process.exit(0);
-});
+}
+
+process.on("SIGINT", shutdown);
+// Steam stops launch-option wrappers with SIGTERM on Linux.
+process.on("SIGTERM", shutdown);
 
 console.log(`ets2-client → ${config.ingestUrl} (session ${sessionId})`);
 tryOpenMap();
