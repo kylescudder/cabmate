@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@ets2/shared": "workspace:*",
-    "koffi": "^2.12.0"
+    "koffi": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
