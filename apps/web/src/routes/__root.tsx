@@ -2,6 +2,8 @@ import { ClerkProvider } from '@clerk/tanstack-react-start';
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
+import { getAuthConfig } from '../lib/auth-config';
+import { Toaster } from '../components/ui/sonner';
 import { UnitsProvider } from '../lib/units';
 import '../globals.css';
 
@@ -22,6 +24,8 @@ const clerkAppearance = {
 };
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // AUTH_PROVIDER is read at runtime so one image serves either provider.
+  loader: () => getAuthConfig(),
   head: () => ({ meta: [{ charSet: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }, { title: 'Cabmate — Your ETS2 companion' }, { name: 'theme-color', content: '#121826' }],
     links: [
       { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
@@ -33,7 +37,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 function Root() {
   const { queryClient } = Route.useRouteContext();
+  const { provider } = Route.useLoaderData();
   const app = <QueryClientProvider client={queryClient}><UnitsProvider><Outlet /></UnitsProvider></QueryClientProvider>;
+  if (provider === 'better-auth') return <>{app}<Toaster /></>;
   return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <ClerkProvider appearance={clerkAppearance} localization={{
     signIn: { start: { title: 'Sign in to Cabmate', titleCombined: 'Continue to Cabmate' },
       password: { subtitle: 'to continue to Cabmate' }, emailCode: { subtitle: 'to continue to Cabmate' }, emailCodeMfa: { subtitle: 'to continue to Cabmate' } },

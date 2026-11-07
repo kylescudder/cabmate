@@ -14,7 +14,7 @@
     "build": "bun run --filter @ets2/web build",
     "start": "bun run --filter @ets2/web start",
     "typecheck": "bun run --filter \"*\" typecheck",
-    "test": "bun test apps/web/server",
+    "test": "bun test apps/web/server && bun test apps/web/client",
     "test:db-budget": "bun test tests/database/connection-budget.test.ts",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",

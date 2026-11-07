@@ -17,7 +17,9 @@ import { Route as DashboardDriversRouteImport } from './routes/_dashboard.driver
 import { Route as DashboardLeaderboardRouteImport } from './routes/_dashboard.leaderboard'
 import { Route as DashboardProfileRouteImport } from './routes/_dashboard.profile'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
+import { Route as AuthPathRouteImport } from './routes/auth.$path'
 import { Route as DashboardUNameRouteImport } from './routes/_dashboard.u.$name'
+import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 import { Route as FunctionsV1IngestRouteImport } from './routes/functions.v1.ingest'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -59,10 +61,20 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthPathRoute = AuthPathRouteImport.update({
+  id: '/auth/$path',
+  path: '/auth/$path',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardUNameRoute = DashboardUNameRouteImport.update({
   id: '/u/$name',
   path: '/u/$name',
   getParentRoute: () => DashboardRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const FunctionsV1IngestRoute = FunctionsV1IngestRouteImport.update({
   id: '/functions/v1/ingest',
@@ -78,7 +90,9 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof DashboardLeaderboardRoute
   '/profile': typeof DashboardProfileRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/$path': typeof AuthPathRoute
   '/u/$name': typeof DashboardUNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRoutesByTo {
@@ -88,8 +102,10 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof DashboardLeaderboardRoute
   '/profile': typeof DashboardProfileRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/$path': typeof AuthPathRoute
   '/': typeof DashboardIndexRoute
   '/u/$name': typeof DashboardUNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRoutesById {
@@ -101,8 +117,10 @@ export interface FileRoutesById {
   '/_dashboard/leaderboard': typeof DashboardLeaderboardRoute
   '/_dashboard/profile': typeof DashboardProfileRoute
   '/api/$': typeof ApiSplatRoute
+  '/auth/$path': typeof AuthPathRoute
   '/_dashboard/': typeof DashboardIndexRoute
   '/_dashboard/u/$name': typeof DashboardUNameRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRouteTypes {
@@ -115,7 +133,9 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/api/$'
+    | '/auth/$path'
     | '/u/$name'
+    | '/api/auth/$'
     | '/functions/v1/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -125,8 +145,10 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/profile'
     | '/api/$'
+    | '/auth/$path'
     | '/'
     | '/u/$name'
+    | '/api/auth/$'
     | '/functions/v1/ingest'
   id:
     | '__root__'
@@ -137,8 +159,10 @@ export interface FileRouteTypes {
     | '/_dashboard/leaderboard'
     | '/_dashboard/profile'
     | '/api/$'
+    | '/auth/$path'
     | '/_dashboard/'
     | '/_dashboard/u/$name'
+    | '/api/auth/$'
     | '/functions/v1/ingest'
   fileRoutesById: FileRoutesById
 }
@@ -147,6 +171,8 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RadioRoute: typeof RadioRoute
   ApiSplatRoute: typeof ApiSplatRoute
+  AuthPathRoute: typeof AuthPathRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   FunctionsV1IngestRoute: typeof FunctionsV1IngestRoute
 }
 
@@ -208,12 +234,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/$path': {
+      id: '/auth/$path'
+      path: '/auth/$path'
+      fullPath: '/auth/$path'
+      preLoaderRoute: typeof AuthPathRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_dashboard/u/$name': {
       id: '/_dashboard/u/$name'
       path: '/u/$name'
       fullPath: '/u/$name'
       preLoaderRoute: typeof DashboardUNameRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/functions/v1/ingest': {
       id: '/functions/v1/ingest'
@@ -250,6 +290,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RadioRoute: RadioRoute,
   ApiSplatRoute: ApiSplatRoute,
+  AuthPathRoute: AuthPathRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   FunctionsV1IngestRoute: FunctionsV1IngestRoute,
 }
 export const routeTree = rootRouteImport

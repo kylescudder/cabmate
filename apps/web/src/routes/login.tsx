@@ -1,9 +1,11 @@
 import { Nav } from '../components/Nav';
-import { Link } from '@tanstack/react-router';
 import { SignIn } from '@clerk/tanstack-react-start';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link, Navigate, useLoaderData } from '@tanstack/react-router';
 export const Route = createFileRoute('/login')({ component: Login });
 function Login() {
+  const { provider } = useLoaderData({ from: '__root__' });
+  // Better Auth has its own sign-in routes; /login stays as Clerk's page and a stable bookmark.
+  if (provider === 'better-auth') return <Navigate to="/auth/$path" params={{ path: 'sign-in' }} replace />;
   return <><Nav publicView /><main id="main" className="max-w-md mx-auto mt-16 px-6">
     <h1 className="text-xl font-bold mb-4">Welcome to Cabmate</h1>
     <p className="mb-6 text-slate-300">Your friends, your next drive, and RadioMax along for the ride.</p>

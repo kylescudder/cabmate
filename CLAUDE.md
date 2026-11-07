@@ -15,7 +15,7 @@ bun run db:generate       # generate a migration after editing apps/web/server/s
 bun run dev               # TanStack Start dev server on :3000
 bun run build             # Vite production build (apps/web/dist)
 bun run start             # production server: apps/web/server/index.ts
-bun run test              # bun test apps/web/server — needs a migrated DB, TRUNCATES it
+bun run test              # bun test apps/web/server and apps/web/client — needs a migrated DB, TRUNCATES it
 bun run typecheck         # tsc across all workspaces
 AGENT_API_KEY=… bun run simulate   # synthetic driver posting to /api/ingest
 ```
@@ -23,7 +23,9 @@ AGENT_API_KEY=… bun run simulate   # synthetic driver posting to /api/ingest
 Use bun (never pnpm or npm). Package names: `@ets2/web`, `@ets2/client`, `@ets2/shared`.
 
 Env vars: see `.env.example` (`DATABASE_URL`, `DATABASE_PASSWORD_FILE`, `APP_ORIGIN`,
-`VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`).
+`VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and the Better Auth
+settings: `AUTH_PROVIDER`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `BREVO_API_KEY`,
+`AUTH_EMAIL_FROM`, `AUTH_EMAIL_DAILY_LIMIT`, `AUTH_ALLOWED_EMAILS`).
 
 ## Architecture
 
@@ -39,8 +41,12 @@ Change the on-the-wire shape there, not in each app.
 - `server/index.ts` is the production Bun server: `/healthz`, static `dist/client`, then the Start handler.
 - `server/api.ts` (`createApi`) implements every `/api/*` route; mounted via `src/routes/api.$.ts`.
   Ingest also answers the legacy Supabase path `/functions/v1/ingest` so installed agents keep working.
-- Auth: ingest uses `Authorization: Bearer <users.api_key>`. Everything else requires a Clerk
-  session (`server/auth.ts`); non-GET requests must be same-origin JSON (`APP_ORIGIN`).
+- Auth: ingest uses `Authorization: Bearer <users.api_key>`. Everything else requires a session
+  from the provider `AUTH_PROVIDER` selects (`server/auth.ts`): Clerk (default) or Better Auth
+  (`server/auth-factory.ts`, invite-only via `AUTH_ALLOWED_EMAILS`, routes `/auth/$path` and an
+  allowlisted `/api/auth/$`). The driver row is found by `users.clerk_user_id` or
+  `users.auth_user_id`; `server/link-clerk-users.ts` links existing drivers before cutover.
+  Non-GET requests must be same-origin JSON (`APP_ORIGIN`). See `deploy/README.md`.
 - `server/ingest.ts` writes each batch in one transaction with a per-session advisory lock and a single
   multi-row telemetry `INSERT ... ON CONFLICT DO NOTHING` — keep the batch insert; per-row inserts won't keep up.
 - Live updates: ingest calls `pg_notify` inside its transaction (delivered only on commit, only when rows were

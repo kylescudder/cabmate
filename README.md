@@ -2,7 +2,7 @@
 
 Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Public radio lives at `/radio`; driving and profile pages use Clerk. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
+Public radio lives at `/radio`; driving and profile pages use Clerk by default, or invite-only Better Auth when `AUTH_PROVIDER=better-auth`. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
 
 Connect your gaming PC to see where your friends are driving, what they’re hauling,
 and how your journeys add up. Tune into RadioMax from the same app.
@@ -48,7 +48,11 @@ and removes its own uniquely named test database/roles. See
 
 ## Identity
 
-Dashboard users sign in with Clerk. On first visit each Clerk user gets a
+Dashboard users sign in with Clerk (the default) or, when `AUTH_PROVIDER=better-auth`,
+with Better Auth: password, emailed code, magic link or passkey, for addresses in
+`AUTH_ALLOWED_EMAILS` only (no sign-up). Rollout, cutover and rollback are in
+[deploy/README.md](deploy/README.md#better-auth-rollout-and-clerk-rollback).
+On first visit each signed-in user gets a
 `users` row with a generated agent `api_key`; the profile page lets them pick
 a username and rotate the key. The agent sends that key as
 `Authorization: Bearer <key>` with every batch.

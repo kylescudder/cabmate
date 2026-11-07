@@ -4,8 +4,10 @@ import { listDrivers } from './api';
 import { database, sqlClient } from './db';
 import { LIVE_CHANNEL } from './ingest';
 import { appOrigins, validAppOrigin } from './origin';
+import { readAuthEnv } from './env';
 
-// Clerk session tokens are short-lived; a periodic reconnect re-checks the cookie.
+// Sessions are re-checked on reconnect (Clerk tokens are short-lived; Better Auth
+// access can be revoked through the allowlist).
 const MAX_SOCKET_AGE_MS = 15 * 60_000;
 // Catches drivers going offline (no sample for 30s), which produce no notification.
 const SWEEP_MS = 5_000;
@@ -39,10 +41,16 @@ export async function startLive() {
 
 let clerk: ReturnType<typeof createClerkClient> | undefined;
 export async function authorizeSocket(request: Request) {
-  if (!process.env.CLERK_SECRET_KEY) return false;
+  const betterAuth = readAuthEnv().AUTH_PROVIDER === 'better-auth';
+  if (!betterAuth && !process.env.CLERK_SECRET_KEY) return false;
   // Browsers always send Origin on WebSocket handshakes; reject cross-site pages riding the session cookie.
   const origin = process.env.APP_ORIGIN || new URL(request.url).origin;
   if (!validAppOrigin(request, origin)) return false;
+  // Same rule as the API: a verified email that is still on the allowlist.
+  if (betterAuth) {
+    const { verifiedUser } = await import('./better-auth');
+    return Boolean(await verifiedUser(request.headers));
+  }
   clerk ??= createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY,
     publishableKey: process.env.CLERK_PUBLISHABLE_KEY || process.env.VITE_CLERK_PUBLISHABLE_KEY });
   const state = await clerk.authenticateRequest(request, { authorizedParties: appOrigins(origin) });

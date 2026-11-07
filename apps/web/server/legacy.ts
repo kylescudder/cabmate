@@ -4,11 +4,11 @@ import type { Database } from './db';
 import * as schema from './schema';
 
 const snapshotSchema = z.object({ version: z.literal(1), tables: z.object({
-  users: z.array(z.record(z.unknown())), vehicles: z.array(z.record(z.unknown())),
-  sessions: z.array(z.record(z.unknown())), jobs: z.array(z.record(z.unknown())),
-  telemetry: z.array(z.record(z.unknown())), telemetry_rollup_minute: z.array(z.record(z.unknown())),
+  users: z.array(z.record(z.string(), z.unknown())), vehicles: z.array(z.record(z.string(), z.unknown())),
+  sessions: z.array(z.record(z.string(), z.unknown())), jobs: z.array(z.record(z.string(), z.unknown())),
+  telemetry: z.array(z.record(z.string(), z.unknown())), telemetry_rollup_minute: z.array(z.record(z.string(), z.unknown())),
 }) });
-const identityMapSchema = z.record(z.string().regex(/^user_[a-zA-Z0-9]+$/));
+const identityMapSchema = z.record(z.string(), z.string().regex(/^user_[a-zA-Z0-9]+$/));
 export const legacyTables = ['users', 'vehicles', 'sessions', 'jobs', 'telemetry', 'telemetry_rollup_minute'] as const;
 
 export async function importLegacy(db: Database, input: unknown, identities: unknown) {
@@ -17,7 +17,9 @@ export async function importLegacy(db: Database, input: unknown, identities: unk
   const mapped = snapshot.tables.users.map(u => {
     const key = u.auth_user_id as string | null;
     if (key && !identityMap[key]) throw new Error('Every legacy auth user needs an explicit Clerk identity mapping');
-    return { ...u, clerk_user_id: key ? identityMap[key] : null };
+    // The Supabase auth_user_id is not Cabmate's Better Auth link (users.auth_user_id); drop it.
+    const { auth_user_id: _supabaseUserId, ...row } = u;
+    return { ...row, clerk_user_id: key ? identityMap[key] : null };
   });
   const clerkIds = mapped.flatMap(u => u.clerk_user_id ? [u.clerk_user_id] : []);
   if (new Set(clerkIds).size !== clerkIds.length) throw new Error('Duplicate Clerk identity mapping');

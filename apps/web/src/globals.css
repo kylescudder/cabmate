@@ -1,6 +1,81 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Cabmate palette (previously tailwind.config.ts). */
+@theme {
+  --color-ink: #0b0f17;
+  --color-panel: #121826;
+  --color-edge: #1f2a3d;
+}
+
+/*
+  shadcn tokens for the Better Auth UI components (src/components/ui, src/components/auth).
+  Cabmate's `accent` utilities stay amber; shadcn uses `accent` for hover surfaces, so
+  shadcn elements (all carry data-slot) get the subtle value instead. `--radius` matches
+  Tailwind's defaults (rounded-sm/md/lg/xl are unchanged for the rest of the app).
+*/
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --animate-caret-blink: caret-blink 1.25s ease-out infinite;
+  @keyframes caret-blink {
+    0%, 70%, 100% { opacity: 1; }
+    20%, 50% { opacity: 0; }
+  }
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: #0b0f17;
+  --foreground: #e6e9ef;
+  --card: #121826;
+  --card-foreground: #e6e9ef;
+  --popover: #121826;
+  --popover-foreground: #e6e9ef;
+  --primary: #fbbf24;
+  --primary-foreground: #0b0f17;
+  --secondary: #1f2a3d;
+  --secondary-foreground: #e6e9ef;
+  --muted: #1f2a3d;
+  --muted-foreground: #94a3b8;
+  --accent: #fbbf24;
+  --accent-foreground: #0b0f17;
+  --destructive: #f87171;
+  --border: #1f2a3d;
+  --input: #2b3850;
+  --ring: #fbbf24;
+  color-scheme: dark;
+}
+[data-slot] {
+  --accent: #1f2a3d;
+  --accent-foreground: #e6e9ef;
+}
+
+/* Tailwind v3 compatibility: v4 defaults borders to currentcolor and buttons to the default cursor. */
+@layer base {
+  *, ::after, ::before, ::backdrop, ::file-selector-button { border-color: var(--color-gray-200, currentcolor); }
+  button:not(:disabled), [role='button']:not(:disabled) { cursor: pointer; }
+}
 
 html, body {
   background: #0b0f17;
@@ -9,7 +84,8 @@ html, body {
 
 body { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
 a, button, input, summary, pre[tabindex] { outline-offset: 5px; }
-:focus-visible { outline: 2px solid #fbbf24; }
+/* shadcn controls draw their own focus ring. */
+:focus-visible:not([data-slot]) { outline: 2px solid #fbbf24; }
 .cab-header { border-bottom: 1px solid #283246; background: #121826; }
 .cab-nav { max-width: 1152px; margin: auto; padding: 18px 24px; display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
 .cab-brand { display: flex; gap: 10px; align-items: center; color: #fbbf24; font-size: 24px; font-weight: 800; line-height: 1.1; }
@@ -18,6 +94,7 @@ a, button, input, summary, pre[tabindex] { outline-offset: 5px; }
 .cab-nav nav a { padding: 10px 0; color: #bdc7d5; font-size: 14px; white-space: nowrap; }
 .cab-nav nav a[aria-current=page] { color: #fbbf24; box-shadow: inset 0 -2px #fbbf24; }
 .nav-signout { padding: 10px 0; color: #bdc7d5; font-size: 12px; }
+.nav-account { display: flex; align-items: center; }
 .skip-link { position: absolute; left: 16px; top: -100px; z-index: 9999; background: #fbbf24; color: #0b0f17; padding: 12px; }
 .skip-link:focus { top: 8px; }
 .radio-page { max-width: 1000px; margin: auto; padding: 56px 24px 32px; }
@@ -53,7 +130,8 @@ a, button, input, summary, pre[tabindex] { outline-offset: 5px; }
 .radio-notice p { margin: 12px 0 20px; }
 @media (max-width: 640px) {
   .cab-nav { gap: 16px; padding: 16px 20px 8px; }
-  .cab-nav nav { flex-basis: 100%; gap: 8px 18px; }
+  .cab-nav nav { flex-basis: 100%; gap: 8px 18px; order: 2; }
+  .nav-account { order: 1; margin-left: auto; }
   .radio-page { padding: 32px 20px; }
   .radio-intro { display: block; margin-bottom: 24px; }
   .radio-intro p { margin-top: 20px; }

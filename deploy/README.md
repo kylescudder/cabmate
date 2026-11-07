@@ -80,8 +80,134 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 - `health(image)` — `healthz` returns `{status:"ok"}` only when the database
   is reachable.
 - `accept(image)` — `verify.ts` checks the served revision matches the image,
-  the login page renders, read APIs and ingest refuse anonymous requests, and
-  Clerk/origin configuration is present.
+  the sign-in page of the selected provider renders, read APIs and ingest refuse
+  anonymous requests, and the provider's (Clerk or Better Auth) and origin
+  configuration is present.
+
+## Better Auth rollout and Clerk rollback
+
+`AUTH_PROVIDER` selects exactly one authentication provider for the server, the
+rendered client and the `/ws` handshake. It defaults to `clerk`, so this additive
+release can be deployed before the production sign-in flow changes. The image is
+the same for both providers (the provider is read at runtime); changing it
+requires recreating the `web` container, not hot-swapping its environment.
+
+The owner migration (`0001_better_auth`) adds `auth_user`, `auth_session`,
+`auth_account`, `auth_verification`, `auth_passkey`, `auth_rate_limit` and
+`auth_email_limit`, plus a nullable, unique `users.auth_user_id` that links a
+driver to their Better Auth account (`ON DELETE SET NULL`). Nothing existing is
+rewritten or dropped, and `users.clerk_user_id` stays in place for rollback. The
+runtime keeps its connection budget and restricted role; the existing grant step
+covers the new tables.
+
+Add these to the protected `app.env`, keeping the Clerk keys:
+
+```dotenv
+AUTH_PROVIDER=clerk
+BETTER_AUTH_URL=<same value as APP_ORIGIN, https in production>
+BETTER_AUTH_SECRET=<stable, cryptographically random, at least 32 characters>
+BREVO_API_KEY=<Cabmate transactional API key>
+AUTH_EMAIL_FROM=<sender on a Brevo-verified domain>
+AUTH_EMAIL_DAILY_LIMIT=40
+AUTH_ALLOWED_EMAILS=<comma-separated driver emails>
+```
+
+Keep the secret stable across releases, and keep it and the Brevo key out of Git,
+image layers and CI. These settings are validated at runtime even while Clerk is
+selected (a malformed `AUTH_ALLOWED_EMAILS` fails page loads), so check them
+before recreating the container. Validation errors name settings, never values.
+
+### Access model
+
+Cabmate is invite-only. `AUTH_ALLOWED_EMAILS` is the source of truth: accounts
+can be created only for those addresses (by email code or magic link), sign-up is
+disabled, and every API request, server-rendered guard and `/ws` handshake
+requires a session whose email is verified and still on the list. Removing an
+address revokes access on the next request, including existing sessions and open
+sockets at their next reconnect (at most 15 minutes). Email codes, magic links
+and reset links are sent only to listed addresses; anyone else gets the same
+generic success response and no email.
+
+Sign-in lives at `/auth/<view>` with four methods, each linking to the others:
+password (`/auth/sign-in`), email code (`/auth/email-otp`), magic link
+(`/auth/magic-link`) and passkey. Forgot/reset password use
+`/auth/forgot-password` and `/auth/reset-password`; `/auth/sign-up` redirects to
+sign-in and `/login` redirects to `/auth/sign-in`. Every method returns to
+`/profile` ("Your cab", where new drivers set up the agent), or to the protected
+page that sent them to sign in (a same-site `?redirectTo=`). A password is added
+from Your cab ("Set password" sends a reset link), then changed there. Passwords
+are 12–128 characters; a reset revokes existing sessions. Signed-in drivers get
+an avatar menu (Better Auth UI `UserButton`) with Profile (Your cab) and Sign out; public
+pages (`/radio`, sign-in) do not load it. Display name and username stay in
+Cabmate's own profile form, which also updates the Better Auth account name.
+
+Emails use a branded table layout (`apps/web/server/auth-email.ts`) with the PNG
+logo at `/email-logo.png`, sent through Brevo's HTTP API with an 8-second
+timeout. Provider responses, codes, links and keys are never logged. Codes are
+six digits, valid once for ten minutes with five attempts, and stored as an HMAC
+keyed by `BETTER_AUTH_SECRET`. Magic links (10 minutes, stored hashed) and reset
+links (30 minutes) are single-use. Persistent limits in `auth_email_limit`: one
+email per recipient per minute, five per recipient per hour, and an app-wide
+`AUTH_EMAIL_DAILY_LIMIT` (default 40 per rolling 24 hours); failed deliveries
+count. Per-IP auth limits are stored in `auth_rate_limit`, keyed on
+`cf-connecting-ip` (only the Cloudflare tunnel reaches the app).
+
+Redirect safety: `callbackURL`, `newUserCallbackURL`, `errorCallbackURL` and
+`redirectTo` must resolve to this origin (control characters and backslashes are
+refused, and paths starting with `//` are rejected); the client applies the same
+rule (`safeAppPath`) to every navigation the auth UI makes. `/api/auth/*`
+forwards only the endpoints Cabmate uses (session, sign-out, account name, email
+code, password, magic link, password reset, change password, list accounts,
+passkeys) and answers 404 for everything else, and for everything while
+`AUTH_PROVIDER=clerk`. Passkeys use the exact hostname of `BETTER_AUTH_URL` as
+RP ID, require user verification and a signed-in, allowlisted driver to enroll.
+
+On phones, magic links open wherever the mail app opens links, so email codes
+are the most reliable mobile method. The code form keeps only the pending email
+and request time in tab-scoped storage for ten minutes, so a reload after
+switching to the mail app returns to code entry without sending another email;
+it never stores the code. Brevo's free plan adds a `List-Unsubscribe` header to
+transactional mail; respect suppression state and keep email codes as recovery.
+
+### Linking existing drivers
+
+Driver data is keyed by `users.id`, and each driver row carries its Clerk user
+ID. Under Better Auth the driver is found through `users.auth_user_id` instead;
+a Better Auth user without a link gets a new driver row on first sign-in (as
+Clerk did). So link existing drivers **before** switching provider, or they
+would start with an empty cab and a new agent key.
+
+`apps/web/server/link-clerk-users.ts` lists Clerk users through the Clerk
+Backend API, takes each user's **verified primary email**, finds or creates the
+Better Auth user (`emailVerified: true`) and sets `users.auth_user_id`. It is a
+dry run unless `--apply` is given, idempotent, prints counts only (never emails,
+IDs or keys), and needs `CLERK_SECRET_KEY` and the runtime database URL (it uses
+one connection, the budget's "one runtime CLI job"). Drivers without a verified
+primary email, and any driver whose email already belongs to a different
+linked driver, are counted as `noVerifiedEmail`/`conflicts` and left for manual
+resolution. Linking never grants access by itself: the address must also be in
+`AUTH_ALLOWED_EMAILS` (`notAllowlisted` counts those that are not).
+
+### Cutover
+
+1. Deploy the image as usual with `AUTH_PROVIDER=clerk`; the owner migration adds
+   the tables. Existing acceptance checks must pass unchanged.
+2. Add the settings above to `app.env` (still `clerk`), and recreate `web`.
+3. Dry run, then apply, from the running container:
+   `docker compose exec -T web bun apps/web/server/link-clerk-users.ts` then
+   `… link-clerk-users.ts --apply`. Review the counts; rerunning is safe.
+4. Set `AUTH_PROVIDER=better-auth` and recreate only `web` with the same image.
+   `verify.ts` then checks `/auth/sign-in`, `/api/auth/get-session` and that
+   sign-up answers 404.
+5. Verify email-code sign-in lands on Your cab with the driver's existing
+   profile and agent key, the live map socket, password set/reset, sign-out,
+   and passkey enrollment/sign-in on a real device.
+
+Rollback: set `AUTH_PROVIDER=clerk` and recreate `web` with the same image. Keep
+the Clerk keys, production Clerk app and DNS until Better Auth has been stable.
+Leave the additive auth tables and links in place; never restore an older
+database to change providers, because that would discard newer telemetry.
+Agents are unaffected by either switch: ingest uses each driver's API key.
 
 ## Connection budget
 

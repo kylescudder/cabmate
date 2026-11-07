@@ -8,7 +8,7 @@ import { users } from './schema';
 // Runs against a migrated, disposable database (CI service container or `bun run db:up`).
 const { db, client } = connect(process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL);
 const anonymous = createApi(() => db, async () => null);
-const signedIn = createApi(() => db, async () => 'user_reader');
+const signedIn = createApi(() => db, async () => ({ provider: 'clerk' as const, id: 'user_reader' }));
 
 function sample(second: number, odometerKm: number) {
   return { recordedAt: new Date(Date.now() - 60_000 + second * 1000).toISOString(), speedKph: 80, rpm: 1400, gear: 10,
