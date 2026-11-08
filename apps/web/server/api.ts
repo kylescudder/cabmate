@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { Database } from './db';
 import { MAX_MINUTE_KM, steps } from './distance';
 import { ingest, newApiKey } from './ingest';
-import { authUser, jobs, sessions, telemetry, users, vehicles } from './schema';
+import { authUser, jobs, sessions, telemetry, users } from './schema';
 import type { Identity } from './identity';
 
 const profileInput = z.object({

@@ -164,7 +164,9 @@ describe('Better Auth sign-in', () => {
     const send = () => cooldown.request('/email-otp/send-verification-otp', { email: 'driver@example.com', type: 'sign-in' });
     expect((await send()).status).toBe(200);
     const first = cooldown.codes.get('driver@example.com');
-    expect((await send()).status).toBe(429);
+    // A refused resend looks like any other success and sends nothing.
+    expect((await send()).status).toBe(200);
+    expect(cooldown.codes.get('driver@example.com')).toBe(first);
     // The refused resend keeps the first code usable.
     expect((await cooldown.request('/sign-in/email-otp', { email: 'driver@example.com', otp: first })).status).toBe(200);
 
@@ -179,14 +181,44 @@ describe('Better Auth sign-in', () => {
     expect(global.count).toBe(1);
   });
 
+  test('a throttled invited address gets the same answer as an uninvited one', async () => {
+    const fixture = authFixture();
+    const endpoints = [
+      ['/email-otp/send-verification-otp', { type: 'sign-in' }],
+      ['/sign-in/magic-link', { callbackURL: '/profile' }],
+      ['/request-password-reset', { redirectTo: '/auth/reset-password' }],
+    ] as const;
+    const answer = async (path: string, extra: object, email: string) => {
+      const response = await fixture.request(path, { email, ...extra });
+      return { status: response.status, body: await response.text() };
+    };
+    expect((await answer(endpoints[0][0], endpoints[0][1], 'driver@example.com')).status).toBe(200);
+    const code = fixture.codes.get('driver@example.com');
+    for (const [path, extra] of endpoints) {
+      const throttled = await answer(path, extra, 'driver@example.com');
+      const uninvited = await answer(path, extra, 'stranger@example.com');
+      expect(throttled).toEqual(uninvited);
+      expect(throttled.status).toBe(200);
+    }
+    // Nothing more was sent or charged, and the first code still works.
+    expect(fixture.links).toHaveLength(0);
+    expect(fixture.codes.get('driver@example.com')).toBe(code);
+    const [global] = await db.execute<{ count: number }>(sql`select count from auth_email_limit where key = 'global:day'`);
+    expect(global.count).toBe(1);
+    expect((await fixture.request('/sign-in/email-otp', { email: 'driver@example.com', otp: code })).status).toBe(200);
+  });
+
   test('password, reset and magic links are invite-only, single-use and same-site; sign-up stays closed', async () => {
     const fixture = authFixture();
     const password = 'correct horse battery staple';
     expect((await fixture.request('/sign-up/email', { email: 'driver@example.com', password, name: 'Driver' })).status).toBe(400);
     const { user } = await signIn(fixture);
     expect((await fixture.request('/sign-in/email', { email: 'driver@example.com', password })).status).toBe(401);
-    // The code above used this address's one-email-a-minute allowance.
-    expect((await fixture.request('/request-password-reset', { email: 'driver@example.com', redirectTo: '/auth/reset-password' })).status).toBe(429);
+    // The code above used this address's one-email-a-minute allowance; the refusal looks like any other answer.
+    const tooSoon = await fixture.request('/request-password-reset', { email: 'driver@example.com', redirectTo: '/auth/reset-password' });
+    expect(tooSoon.status).toBe(200);
+    expect(await tooSoon.json()).toEqual({ status: true });
+    expect(fixture.links).toHaveLength(0);
     await db.execute(sql`truncate auth_email_limit`);
 
     for (const email of ['stranger@example.com', 'DRIVER@example.com '])

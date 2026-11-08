@@ -130,7 +130,7 @@ export function createCabmateAuth(
           // Same answer for every address, so the form never reveals who is invited.
           if (!isAllowedEmail(email, settings.allowedEmails)) return ctx.json({ success: true });
           ctx.body.email = email;
-          await reserveEmailDelivery(database, email, settings.dailyEmailLimit);
+          if (!(await reserveEmailDelivery(database, email, settings.dailyEmailLimit))) return ctx.json({ success: true });
         }
         if (ctx.path === '/sign-in/magic-link' || ctx.path === '/request-password-reset') {
           refuseCrossSite(ctx.headers);
@@ -142,7 +142,7 @@ export function createCabmateAuth(
           const email = typeof ctx.body?.email === 'string' ? ctx.body.email.trim().toLowerCase() : '';
           if (!isAllowedEmail(email, settings.allowedEmails)) return ctx.json({ status: true });
           ctx.body.email = email;
-          await reserveEmailDelivery(database, email, settings.dailyEmailLimit);
+          if (!(await reserveEmailDelivery(database, email, settings.dailyEmailLimit))) return ctx.json({ status: true });
         }
         if (ctx.path.startsWith('/passkey/') && !publicPasskeyPaths.has(ctx.path)) {
           const session = await getSessionFromCtx(ctx);
