@@ -169,6 +169,28 @@ switching to the mail app returns to code entry without sending another email;
 it never stores the code. Brevo's free plan adds a `List-Unsubscribe` header to
 transactional mail; respect suppression state and keep email codes as recovery.
 
+### Profile photo
+
+Under Better Auth, Your cab's profile form also uploads and removes a profile
+photo, which the header avatar menu shows. The browser crops JPEG/PNG/WebP files
+(up to 10 MB) to a 512-pixel square JPEG; `PUT /api/profile/avatar` then caps the
+body at 512 KB and 4 megapixels, checks the file signature, decodes and
+re-encodes it with `sharp` to a 256-pixel JPEG without metadata, and stores it as
+`bytea` in the `user_profile` table (migration `0002_profile`, one row per
+`auth_user`, deleted with it). `auth_user.image` is set to
+`/api/profile/avatar?v=<random version>`, which changes on every upload. `GET`,
+`PUT` and `DELETE` serve only the signed-in driver's own photo, need a verified
+email still in `AUTH_ALLOWED_EMAILS`, require the app Origin for changes, and
+answer `no-store`, `nosniff`, same-origin CORP; the route is 404 while
+`AUTH_PROVIDER=clerk`. `update-user` still accepts only the account name, so
+`user.image` can never point elsewhere. The photo is private: driver cards, the
+map and the leaderboard do not show it. It is covered by the existing encrypted
+database backups, and the owner migration's runtime grant (`all tables in schema
+public`) already includes the new table, so no extra volume, service or secret is
+needed. Keep the table on rollback; Clerk mode ignores it. `sharp` ships prebuilt
+libvips for linux-x64/arm64 glibc, so the `oven/bun` runtime image needs no extra
+packages.
+
 ### Linking existing drivers
 
 Driver data is keyed by `users.id`, and each driver row carries its Clerk user

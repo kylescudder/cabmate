@@ -20,6 +20,7 @@ import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as AuthPathRouteImport } from './routes/auth.$path'
 import { Route as DashboardUNameRouteImport } from './routes/_dashboard.u.$name'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
+import { Route as ApiProfileAvatarRouteImport } from './routes/api.profile.avatar'
 import { Route as FunctionsV1IngestRouteImport } from './routes/functions.v1.ingest'
 
 const DashboardRoute = DashboardRouteImport.update({
@@ -76,6 +77,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProfileAvatarRoute = ApiProfileAvatarRouteImport.update({
+  id: '/api/profile/avatar',
+  path: '/api/profile/avatar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FunctionsV1IngestRoute = FunctionsV1IngestRouteImport.update({
   id: '/functions/v1/ingest',
   path: '/functions/v1/ingest',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/auth/$path': typeof AuthPathRoute
   '/u/$name': typeof DashboardUNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/profile/avatar': typeof ApiProfileAvatarRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRoutesByTo {
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/': typeof DashboardIndexRoute
   '/u/$name': typeof DashboardUNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/profile/avatar': typeof ApiProfileAvatarRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRoutesById {
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_dashboard/': typeof DashboardIndexRoute
   '/_dashboard/u/$name': typeof DashboardUNameRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/profile/avatar': typeof ApiProfileAvatarRoute
   '/functions/v1/ingest': typeof FunctionsV1IngestRoute
 }
 export interface FileRouteTypes {
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/auth/$path'
     | '/u/$name'
     | '/api/auth/$'
+    | '/api/profile/avatar'
     | '/functions/v1/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/u/$name'
     | '/api/auth/$'
+    | '/api/profile/avatar'
     | '/functions/v1/ingest'
   id:
     | '__root__'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_dashboard/'
     | '/_dashboard/u/$name'
     | '/api/auth/$'
+    | '/api/profile/avatar'
     | '/functions/v1/ingest'
   fileRoutesById: FileRoutesById
 }
@@ -173,6 +185,7 @@ export interface RootRouteChildren {
   ApiSplatRoute: typeof ApiSplatRoute
   AuthPathRoute: typeof AuthPathRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiProfileAvatarRoute: typeof ApiProfileAvatarRoute
   FunctionsV1IngestRoute: typeof FunctionsV1IngestRoute
 }
 
@@ -255,6 +268,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/profile/avatar': {
+      id: '/api/profile/avatar'
+      path: '/api/profile/avatar'
+      fullPath: '/api/profile/avatar'
+      preLoaderRoute: typeof ApiProfileAvatarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/functions/v1/ingest': {
       id: '/functions/v1/ingest'
       path: '/functions/v1/ingest'
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSplatRoute: ApiSplatRoute,
   AuthPathRoute: AuthPathRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiProfileAvatarRoute: ApiProfileAvatarRoute,
   FunctionsV1IngestRoute: FunctionsV1IngestRoute,
 }
 export const routeTree = rootRouteImport

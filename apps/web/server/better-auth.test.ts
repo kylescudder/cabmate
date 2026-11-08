@@ -1,13 +1,15 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import { eq, sql } from 'drizzle-orm';
+import sharp from 'sharp';
 import { connect } from './db';
 import { createApi } from './api';
 import { createCabmateAuth } from './auth-factory';
 import { betterAuthIdentity } from './better-auth';
 import { fetchClerkUsers, linkClerkUsers, type ClerkUser } from './link-clerk-users';
 import { importLegacy } from './legacy';
-import { authUser, users } from './schema';
+import { createAvatarHandler } from './profile-avatar';
+import { authUser, userProfile, users } from './schema';
 
 // Runs against a migrated, disposable database (CI service container or `bun run db:up`).
 const { db, client } = connect(process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL);
@@ -18,7 +20,7 @@ let fixtureNumber = 0;
 
 beforeEach(async () => {
   // Truncating auth_user cascades to users through users.auth_user_id.
-  await db.execute(sql`truncate auth_user, auth_session, auth_account, auth_passkey, auth_verification, auth_rate_limit, auth_email_limit, users, vehicles, sessions, jobs, telemetry, telemetry_rollup_minute cascade`);
+  await db.execute(sql`truncate auth_user, user_profile, auth_session, auth_account, auth_passkey, auth_verification, auth_rate_limit, auth_email_limit, users, vehicles, sessions, jobs, telemetry, telemetry_rollup_minute cascade`);
 });
 afterAll(() => client.end());
 
@@ -229,6 +231,99 @@ describe('Better Auth sign-in', () => {
   });
 });
 
+describe('profile photo', () => {
+  const photo = (fixture: Fixture, allowedEmails = allowed) => {
+    const handler = createAvatarHandler(db, { origin, allowedEmails, getSession: headers => fixture.auth.api.getSession({ headers }) });
+    return (method = 'GET', cookie = '', body?: BodyInit, headers: Record<string, string> = {}) => handler(new Request(origin + '/api/profile/avatar', {
+      method, body, headers: { Origin: origin, Cookie: cookie, 'Content-Type': 'image/png', ...headers },
+    }));
+  };
+  const png = () => sharp({ create: { width: 64, height: 32, channels: 3, background: '#fbbf24' } })
+    .png().withMetadata({ exif: { IFD0: { Artist: 'metadata to strip' } } }).toBuffer();
+
+  test('upload, replace and delete keep one re-encoded, private JPEG per driver', async () => {
+    const fixture = authFixture();
+    const { cookie, user } = await signIn(fixture);
+    const other = await signIn(fixture, 'second@example.com');
+    const request = photo(fixture);
+    const image = new Uint8Array(await png());
+    expect(await (await photo(fixture)('GET', cookie)).json()).toEqual({ error: 'No profile photo' });
+
+    const first = await request('PUT', cookie, image);
+    expect(first.status).toBe(200);
+    expect(first.headers.get('Cache-Control')).toBe('no-store');
+    const { image: firstUrl } = await first.json() as { image: string };
+    expect(firstUrl).toMatch(/^\/api\/profile\/avatar\?v=[0-9a-f-]{36}$/);
+    // The account menu (session user.image) and Your cab both see it.
+    const session = await (await fixture.request('/get-session', undefined, cookie)).json();
+    expect(session.user.image).toBe(firstUrl);
+    expect((await (await fixture.call('/api/profile', cookie)).json()).photo).toBe(firstUrl);
+
+    const served = await request('GET', cookie);
+    expect(served.status).toBe(200);
+    expect(served.headers.get('Content-Type')).toBe('image/jpeg');
+    expect(served.headers.get('Cache-Control')).toBe('no-store');
+    expect(served.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    expect(served.headers.get('Cross-Origin-Resource-Policy')).toBe('same-origin');
+    const metadata = await sharp(Buffer.from(await served.arrayBuffer())).metadata();
+    expect(metadata).toMatchObject({ format: 'jpeg', width: 256, height: 256 });
+    expect(metadata.exif).toBeUndefined();
+
+    // Another driver only ever reads their own (missing) photo.
+    expect((await request('GET', other.cookie)).status).toBe(404);
+    expect((await (await fixture.call('/api/profile', other.cookie)).json()).photo).toBeNull();
+
+    const replaced = await (await request('PUT', cookie, image)).json() as { image: string };
+    expect(replaced.image).not.toBe(firstUrl);
+    const [account] = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, user.id));
+    expect(account.image).toBe(replaced.image);
+    expect(await db.select().from(userProfile)).toHaveLength(1);
+
+    // update-user still cannot point user.image anywhere.
+    expect((await fixture.request('/update-user', { image: 'https://example.com/track.png' }, cookie)).status).toBe(400);
+
+    const removed = await request('DELETE', cookie);
+    expect(removed.status).toBe(200);
+    expect(await removed.json()).toEqual({ image: null });
+    expect((await request('GET', cookie)).status).toBe(404);
+    const [cleared] = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, user.id));
+    expect(cleared.image).toBeNull();
+    expect((await (await fixture.call('/api/profile', cookie)).json()).photo).toBeNull();
+  });
+
+  test('size, type, origin and access rules are enforced', async () => {
+    const fixture = authFixture();
+    const { cookie, user } = await signIn(fixture);
+    const request = photo(fixture);
+    const image = new Uint8Array(await png());
+    expect((await request('PUT', '', image)).status).toBe(401);
+    expect((await request('GET')).status).toBe(401);
+    expect((await request('DELETE')).status).toBe(401);
+    expect((await request('PUT', cookie, image, { Origin: 'https://evil.example' })).status).toBe(403);
+    expect((await request('PUT', cookie, image, { 'Sec-Fetch-Site': 'cross-site' })).status).toBe(403);
+    expect((await request('PUT', cookie, '<svg onload="alert(1)"/>', { 'Content-Type': 'image/svg+xml' })).status).toBe(415);
+    expect((await request('PUT', cookie, '<svg onload="alert(1)"/>')).status).toBe(400);
+    expect((await request('PUT', cookie, 'GIF89a not really', { 'Content-Type': 'image/jpeg' })).status).toBe(400);
+    // A PNG header on a corrupt body is still refused by the decoder.
+    expect((await request('PUT', cookie, new Uint8Array([...image.subarray(0, 40), 0, 0, 0]))).status).toBe(400);
+    const tooLarge = new Uint8Array(512_001);
+    tooLarge.set(image);
+    expect((await request('PUT', cookie, tooLarge)).status).toBe(413);
+    const streamed = new ReadableStream({ start(controller) { controller.enqueue(image); controller.enqueue(new Uint8Array(512_000)); controller.close(); } });
+    expect((await request('PUT', cookie, streamed)).status).toBe(413);
+    expect((await request('PATCH', cookie)).status).toBe(405);
+    expect(await db.select().from(userProfile)).toHaveLength(0);
+
+    // Removed from AUTH_ALLOWED_EMAILS, or no longer verified: no access to the photo.
+    expect((await request('PUT', cookie, image)).status).toBe(200);
+    expect((await photo(fixture, ['second@example.com'])('GET', cookie)).status).toBe(403);
+    expect((await photo(fixture, ['second@example.com'])('DELETE', cookie)).status).toBe(403);
+    await db.update(authUser).set({ emailVerified: false }).where(eq(authUser.id, user.id));
+    expect((await request('GET', cookie)).status).toBe(403);
+    expect((await request('PUT', cookie, image)).status).toBe(403);
+  });
+});
+
 describe('app routes', () => {
   const settings = {
     AUTH_PROVIDER: 'better-auth', BETTER_AUTH_URL: origin, BETTER_AUTH_SECRET: secret, BREVO_API_KEY: 'fixture-never-used',
@@ -253,6 +348,18 @@ describe('app routes', () => {
       process.env.AUTH_PROVIDER = 'clerk';
       for (const path of ['/get-session', '/sign-in/email-otp', '/sign-in/email'])
         expect((await post(authHandler, path, path === '/get-session' ? 'GET' : 'POST')).status).toBe(404);
+    } finally { restore(); }
+  });
+
+  test('the photo route is 404 in Clerk mode and needs a session in Better Auth mode', async () => {
+    const { avatarHandler } = await import('../src/routes/api.profile.avatar');
+    const get = () => avatarHandler(new Request(origin + '/api/profile/avatar'));
+    try {
+      process.env.AUTH_PROVIDER = 'clerk';
+      expect((await get()).status).toBe(404);
+      expect((await avatarHandler(new Request(origin + '/api/profile/avatar', { method: 'DELETE', headers: { Origin: origin } }))).status).toBe(404);
+      Object.assign(process.env, settings);
+      expect((await get()).status).toBe(401);
     } finally { restore(); }
   });
 

@@ -98,7 +98,10 @@ export function createApi(getDb: () => Database, getIdentity: (request: Request)
       if (pathname === '/api/profile' && request.method === 'GET') {
         const own = await profile(db, identity);
         const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(sessions).where(eq(sessions.userId, own.id));
-        result = { ...own, sessionCount: count };
+        // Better Auth drivers also see their private profile photo (null under Clerk).
+        const [account] = identity.provider === 'better-auth'
+          ? await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, identity.id)) : [];
+        result = { ...own, sessionCount: count, photo: account?.image ?? null };
       } else if (pathname === '/api/profile' && request.method === 'PATCH') {
         const input = profileInput.safeParse(await request.json().catch(() => null));
         if (!input.success) return Response.json({ error: 'Enter a display name and a username of 2–32 lowercase letters, digits or hyphens.' }, { status: 400 });

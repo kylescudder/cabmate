@@ -7,6 +7,7 @@ import { emailOtpPlugin } from '@/lib/auth/email-otp-plugin'
 import { magicLinkPlugin } from '@/lib/auth/magic-link-plugin'
 import { authClient } from '@/lib/auth-client'
 import { appHome, safeAppPath } from '@/lib/auth/safe-path'
+import { profileAvatar } from '@/lib/profile-ui'
 
 // Every navigation the auth UI makes goes through safeAppPath, so a crafted
 // `?redirectTo=` can never leave Cabmate.
@@ -31,6 +32,7 @@ export function BetterAuthUIProvider({ children, redirectTo = appHome }: { child
         rememberMe: false,
         requireEmailVerification: true
       }}
+      avatar={profileAvatar}
       plugins={[emailOtpPlugin(), magicLinkPlugin(), passkeyPlugin()]}
     >
       {children}

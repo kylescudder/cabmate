@@ -49,3 +49,4 @@ export const rollups = pgTable('telemetry_rollup_minute', {
   distanceKm: doublePrecision('distance_km'), samples: integer('samples'),
 }, t => [primaryKey({ columns: [t.userId, t.bucket] })]);
 export * from './auth-schema';
+export * from './profile-schema';
