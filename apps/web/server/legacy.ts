@@ -8,21 +8,13 @@ const snapshotSchema = z.object({ version: z.literal(1), tables: z.object({
   sessions: z.array(z.record(z.string(), z.unknown())), jobs: z.array(z.record(z.string(), z.unknown())),
   telemetry: z.array(z.record(z.string(), z.unknown())), telemetry_rollup_minute: z.array(z.record(z.string(), z.unknown())),
 }) });
-const identityMapSchema = z.record(z.string(), z.string().regex(/^user_[a-zA-Z0-9]+$/));
 export const legacyTables = ['users', 'vehicles', 'sessions', 'jobs', 'telemetry', 'telemetry_rollup_minute'] as const;
 
-export async function importLegacy(db: Database, input: unknown, identities: unknown) {
+export async function importLegacy(db: Database, input: unknown) {
   const snapshot = snapshotSchema.parse(input);
-  const identityMap = identityMapSchema.parse(identities);
-  const mapped = snapshot.tables.users.map(u => {
-    const key = u.auth_user_id as string | null;
-    if (key && !identityMap[key]) throw new Error('Every legacy auth user needs an explicit Clerk identity mapping');
-    // The Supabase auth_user_id is not Cabmate's Better Auth link (users.auth_user_id); drop it.
-    const { auth_user_id: _supabaseUserId, ...row } = u;
-    return { ...row, clerk_user_id: key ? identityMap[key] : null };
-  });
-  const clerkIds = mapped.flatMap(u => u.clerk_user_id ? [u.clerk_user_id] : []);
-  if (new Set(clerkIds).size !== clerkIds.length) throw new Error('Duplicate Clerk identity mapping');
+  // The Supabase auth_user_id is not Cabmate's Better Auth link (users.auth_user_id); drop it.
+  // Imported drivers start unlinked: set users.auth_user_id by hand before their first sign-in.
+  const mapped = snapshot.tables.users.map(({ auth_user_id: _supabaseUserId, ...row }) => row);
   await db.transaction(async tx => {
     await tx.execute(sql`lock table users, vehicles, sessions, jobs, telemetry, telemetry_rollup_minute in access exclusive mode`);
     const [{ count }] = await tx.execute(sql`select count(*)::int as count from users`);

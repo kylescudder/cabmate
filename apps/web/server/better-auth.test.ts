@@ -405,8 +405,9 @@ describe('legacy import', () => {
   test('the legacy Supabase import never treats its auth_user_id as a Better Auth link', async () => {
     const legacyUser = { id: randomUUID(), auth_user_id: randomUUID(), name: 'legacy', display_name: 'Legacy', avatar_url: null, api_key: 'key-legacy', created_at: new Date().toISOString() };
     const tables = { users: [legacyUser], vehicles: [], sessions: [], jobs: [], telemetry: [], telemetry_rollup_minute: [] };
-    await importLegacy(db, { version: 1, tables }, { [legacyUser.auth_user_id]: 'user_legacy' });
+    await importLegacy(db, { version: 1, tables });
     const [row] = await db.select().from(users).where(eq(users.id, legacyUser.id));
-    expect(row).toMatchObject({ clerkUserId: 'user_legacy', authUserId: null, apiKey: 'key-legacy' });
+    expect(row).toMatchObject({ authUserId: null, apiKey: 'key-legacy' });
+    expect(row).not.toHaveProperty('clerkUserId');
   });
 });

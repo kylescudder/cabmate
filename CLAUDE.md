@@ -43,7 +43,8 @@ Change the on-the-wire shape there, not in each app.
 - Auth: ingest uses `Authorization: Bearer <users.api_key>`. Everything else requires a Better Auth
   session (`server/auth.ts`, `server/auth-factory.ts`), invite-only via `AUTH_ALLOWED_EMAILS`, with
   routes `/auth/$path` and an allowlisted `/api/auth/$`. The driver row is found by
-  `users.auth_user_id` (`users.clerk_user_id` is a leftover, unused column).
+  `users.auth_user_id`. The database still has an unused, nullable `users.clerk_user_id` that the
+  schema omits on purpose until its drop migration ships (expand/contract), so `db:generate` emits that drop.
   Non-GET requests must be same-origin JSON (`APP_ORIGIN`). See `deploy/README.md`.
 - `server/ingest.ts` writes each batch in one transaction with a per-session advisory lock and a single
   multi-row telemetry `INSERT ... ON CONFLICT DO NOTHING` — keep the batch insert; per-row inserts won't keep up.

@@ -4,9 +4,9 @@ import { pgTable, uuid, text, timestamp, real, doublePrecision, integer, primary
 const time = (name: string) => timestamp(name, { withTimezone: true, mode: 'string' });
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  // Unused since Clerk was removed (kept to avoid a migration; candidate for a later drop).
-  // Only the legacy Supabase import (legacy.ts) still writes it.
-  clerkUserId: text('clerk_user_id').unique(),
+  // The database still has the nullable, unused users.clerk_user_id column (and its unique
+  // constraint) until the follow-up drop migration ships; it is left out here on purpose so this
+  // image never names it. Until then, `db:generate` for any other change will also emit that drop.
   // Better Auth identity for this driver; set on first sign-in.
   authUserId: text('auth_user_id').unique().references(() => authUser.id, { onDelete: 'set null' }),
   name: text('name').notNull().unique(),
