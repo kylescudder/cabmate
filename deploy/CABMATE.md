@@ -119,11 +119,14 @@ existing objects in place after draining connections; do not recreate users/data
 The installed deploy-core hook must use the same database and role names before
 resuming automatic deployment. Keep service/image/repository names unchanged.
 
-`deploy/compose.legacy.yaml` supplies a separate, unprivileged redirect proxy.
-Register both old dashboard routes against `cabmate-legacy:8080` after Cabmate
-sign-in and the deployment revision pass. The proxy preserves both old ingest
-POST paths, `/healthz`, `/ws`, assets and RadioMax station APIs. It does not
-restart or reconfigure the broadcaster. The audio hostname remains separate.
+The separate `cabmate-legacy` redirect proxy (`deploy/compose.legacy.yaml`) was
+removed on 8 November 2026. The platform route for `ets2.kylescudder.co.uk` was
+never pointed at it: it proxies straight to `ets2-data-dashboard:3000`, so the
+old ingest paths, `/healthz` and `/ws` keep working there, and the container
+only crash-looped (its Caddy binary needs a file capability that `cap_drop: [ALL]`
+removes). A browser redirect from the old hostname to Cabmate, if wanted, belongs
+in the platform route rather than a separate container.
+
 Set `LEGACY_APP_ORIGIN=https://ets2.kylescudder.co.uk` during the transition to
 retain exact origin checks for open pages; remove it once that window is over.
 Clerk's domain move invalidates previous sessions regardless of this allowance.
