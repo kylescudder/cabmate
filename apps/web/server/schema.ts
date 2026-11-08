@@ -4,8 +4,10 @@ import { pgTable, uuid, text, timestamp, real, doublePrecision, integer, primary
 const time = (name: string) => timestamp(name, { withTimezone: true, mode: 'string' });
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
+  // Unused since Clerk was removed (kept to avoid a migration; candidate for a later drop).
+  // Only the legacy Supabase import (legacy.ts) still writes it.
   clerkUserId: text('clerk_user_id').unique(),
-  // Better Auth identity for this driver; set on first sign-in or by link-clerk-users.ts.
+  // Better Auth identity for this driver; set on first sign-in.
   authUserId: text('auth_user_id').unique().references(() => authUser.id, { onDelete: 'set null' }),
   name: text('name').notNull().unique(),
   displayName: text('display_name').notNull(),

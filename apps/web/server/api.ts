@@ -16,15 +16,12 @@ const profileInput = z.object({
 const publicUser = { id: users.id, name: users.name, display_name: users.displayName, avatar_url: users.avatarUrl };
 
 // First sign-in creates the driver row (placeholder username/display name and a
-// fresh agent key), whichever provider is active. Existing Clerk drivers are linked
-// to Better Auth by link-clerk-users.ts before the provider is switched.
+// fresh agent key), linked to the Better Auth user through users.auth_user_id.
 export async function profile(db: Database, who: Identity) {
   const id = randomUUID();
-  const column = who.provider === 'clerk' ? users.clerkUserId : users.authUserId;
-  const link = who.provider === 'clerk' ? { clerkUserId: who.id } : { authUserId: who.id };
-  await db.insert(users).values({ id, ...link, name: `driver-${id.slice(0, 24)}`, displayName: 'Driver', apiKey: newApiKey() })
-    .onConflictDoNothing({ target: column });
-  return (await db.select({ ...publicUser, api_key: users.apiKey }).from(users).where(eq(column, who.id)))[0];
+  await db.insert(users).values({ id, authUserId: who.id, name: `driver-${id.slice(0, 24)}`, displayName: 'Driver', apiKey: newApiKey() })
+    .onConflictDoNothing({ target: users.authUserId });
+  return (await db.select({ ...publicUser, api_key: users.apiKey }).from(users).where(eq(users.authUserId, who.id)))[0];
 }
 
 // Shared by GET /api/drivers and the /ws broadcaster, so both report the same online state.
@@ -98,9 +95,8 @@ export function createApi(getDb: () => Database, getIdentity: (request: Request)
       if (pathname === '/api/profile' && request.method === 'GET') {
         const own = await profile(db, identity);
         const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(sessions).where(eq(sessions.userId, own.id));
-        // Better Auth drivers also see their private profile photo (null under Clerk).
-        const [account] = identity.provider === 'better-auth'
-          ? await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, identity.id)) : [];
+        // Drivers also see their private profile photo.
+        const [account] = await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, identity.id));
         result = { ...own, sessionCount: count, photo: account?.image ?? null };
       } else if (pathname === '/api/profile' && request.method === 'PATCH') {
         const input = profileInput.safeParse(await request.json().catch(() => null));
@@ -109,7 +105,7 @@ export function createApi(getDb: () => Database, getIdentity: (request: Request)
         await db.transaction(async tx => {
           await tx.update(users).set({ name: input.data.name, displayName: input.data.display_name }).where(eq(users.id, own.id));
           // Keep the account menu's name in step with the driver's display name.
-          if (identity.provider === 'better-auth') await tx.update(authUser).set({ name: input.data.display_name, updatedAt: new Date() }).where(eq(authUser.id, identity.id));
+          await tx.update(authUser).set({ name: input.data.display_name, updatedAt: new Date() }).where(eq(authUser.id, identity.id));
         });
         result = { ok: true };
       } else if (pathname === '/api/profile/key' && request.method === 'POST') {

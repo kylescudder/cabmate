@@ -8,21 +8,18 @@ async function check(path: string, status: number, init?: RequestInit) {
 }
 const health = await check('/healthz', 200);
 if ((await health.json()).revision !== (process.env.ETS2_REVISION || 'development')) throw new Error('Revision mismatch');
-// Throws (setting names only) when the selected provider's settings are incomplete.
-const betterAuth = readAuthEnv().AUTH_PROVIDER === 'better-auth';
-const signInPath = betterAuth ? '/auth/sign-in' : '/login';
-if (!(await (await check(signInPath, 200)).text()).includes('Welcome to Cabmate')) throw new Error('Login page missing');
+// Throws (setting names only) when the Better Auth settings are incomplete.
+readAuthEnv();
+if (!(await (await check('/auth/sign-in', 200)).text()).includes('Welcome to Cabmate')) throw new Error('Login page missing');
 if (!(await (await check('/radio', 200)).text()).includes('RadioMax')) throw new Error('Radio page missing');
 await check('/api/profile', 401);
 await check('/api/drivers', 401);
 await check('/ws', 401, { headers: { upgrade: 'websocket', connection: 'Upgrade', origin: process.env.APP_ORIGIN ?? '' } });
 await check('/api/ingest', 401, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
 await check('/functions/v1/ingest', 401, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
-if (betterAuth) {
-  // Better Auth answers only the allowlisted endpoints; sign-up stays closed.
-  await check('/api/auth/get-session', 200);
-  await check('/api/auth/sign-up/email', 404, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
-}
-if (!(betterAuth || process.env.CLERK_SECRET_KEY) || !process.env.APP_ORIGIN) throw new Error('Production authentication configuration is missing');
+// Better Auth answers only the allowlisted endpoints; sign-up stays closed.
+await check('/api/auth/get-session', 200);
+await check('/api/auth/sign-up/email', 404, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+if (!process.env.APP_ORIGIN) throw new Error('Production authentication configuration is missing');
 console.log('ETS2 acceptance checks passed');
 export {};

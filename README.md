@@ -2,7 +2,7 @@
 
 Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Public radio lives at `/radio`; driving and profile pages use Clerk by default, or invite-only Better Auth when `AUTH_PROVIDER=better-auth`. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
+Public radio lives at `/radio`; driving and profile pages use invite-only Better Auth sign-in. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
 
 Connect your gaming PC to see where your friends are driving, what they’re hauling,
 and how your journeys add up. Tune into RadioMax from the same app.
@@ -11,7 +11,7 @@ and how your journeys add up. Tune into RadioMax from the same app.
 
 ```
 apps/client     telemetry agent (Windows, or Linux + Proton), reads scs-sdk-plugin shared memory
-apps/web        TanStack Start app (Clerk auth, Drizzle + Postgres) — companion UI
+apps/web        TanStack Start app (Better Auth, Drizzle + Postgres) — companion UI
                 and the JSON API, served by one Bun process (server/index.ts)
 services/radio-max  RadioMax broadcaster, relay, legacy dashboard and deployment tests
 packages/shared Zod schemas / TS types for the ingest wire format
@@ -19,7 +19,7 @@ packages/shared Zod schemas / TS types for the ingest wire format
 
 ```
 agent ─► POST /api/ingest (Bearer <driver api key>) ─► Postgres
-                                                        └─ NOTIFY ─► WS /ws ─► browser (Clerk session)
+                                                        └─ NOTIFY ─► WS /ws ─► browser (auth session)
 ```
 
 `scripts/simulate.ts` posts synthetic samples to the same ingest endpoint, so
@@ -28,7 +28,7 @@ the dashboard can be developed without the game running.
 ## Quick start
 
 ```bash
-cp .env.example .env          # add your Clerk dev keys
+cp .env.example .env          # fill in the Better Auth settings
 bun install
 bun run db:up                 # disposable Postgres on 127.0.0.1:5439
 bun run db:migrate
@@ -48,10 +48,9 @@ and removes its own uniquely named test database/roles. See
 
 ## Identity
 
-Dashboard users sign in with Clerk (the default) or, when `AUTH_PROVIDER=better-auth`,
-with Better Auth: password, emailed code, magic link or passkey, for addresses in
-`AUTH_ALLOWED_EMAILS` only (no sign-up). Rollout, cutover and rollback are in
-[deploy/README.md](deploy/README.md#better-auth-rollout-and-clerk-rollback).
+Dashboard users sign in with Better Auth: password, emailed code, magic link or
+passkey, for addresses in `AUTH_ALLOWED_EMAILS` only (no sign-up). Settings and
+the access model are in [deploy/README.md](deploy/README.md#authentication-better-auth).
 On first visit each signed-in user gets a
 `users` row with a generated agent `api_key`; the profile page lets them pick
 a username and rotate the key. The agent sends that key as
@@ -96,7 +95,7 @@ Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
 ```
 
 Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard
-again — accounts now use Clerk.
+again with the email address you were invited with.
 
 ## Real client (Linux + Proton)
 
@@ -151,7 +150,3 @@ history, outstanding work and broadcaster release setup.
 ## Deployment
 
 Runs on Herman via `deploy-core`; see [deploy/README.md](deploy/README.md).
-
-## Real Clerk development check
-
-`bun run test:clerk` is an opt-in test against a locally running build with real development keys and the existing test account. It verifies protected pages, profile persistence, the live socket and sign-out against disposable storage. See [the setup and evidence](verification/companion-merge/clerk-development.md); credentials are never committed or required by the default CI suite.

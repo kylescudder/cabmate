@@ -28,9 +28,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 
 ## One-time setup
 
-1. **GitHub**: set the repository variable `VITE_CLERK_PUBLISHABLE_KEY` (the
-   production Clerk publishable key; Vite embeds it at build time).
-2. **Database** on platform PostgreSQL — database `cabmate`, two roles:
+1. **Database** on platform PostgreSQL — database `cabmate`, two roles:
    - `cabmate_owner` owns the database and `public` schema; used only by the
      `prepare` hook for migrations. Password in
      `/Users/kyle/platform/projects/cabmate/owner-password`.
@@ -46,20 +44,27 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    \c cabmate
    alter schema public owner to cabmate_owner;
    ```
-3. **App directory** `/Users/kyle/platform/apps/ets2-data-dashboard/` (mode 0700)
-   containing `compose.yaml` and a protected `app.env` (0600):
+2. **App directory** `/Users/kyle/platform/apps/ets2-data-dashboard/` (mode 0700)
+   containing `compose.yaml` and a protected `app.env` (0600, loaded through
+   `env_file: app.env`):
 
-   ```
+   ```dotenv
    APP_ORIGIN=https://ets2.kylescudder.co.uk
-   CLERK_PUBLISHABLE_KEY=pk_live_…
-   CLERK_SECRET_KEY=sk_live_…
-   CLERK_SIGN_IN_URL=/login
-   CLERK_SIGN_UP_URL=/login
+   BETTER_AUTH_URL=<same value as APP_ORIGIN, https in production>
+   BETTER_AUTH_SECRET=<stable, cryptographically random, at least 32 characters>
+   BREVO_API_KEY=<Cabmate transactional API key>
+   AUTH_EMAIL_FROM=<sender on a Brevo-verified domain>
+   AUTH_EMAIL_DAILY_LIMIT=40
+   AUTH_ALLOWED_EMAILS=<comma-separated driver emails>
    ```
 
-   `CLERK_PUBLISHABLE_KEY` is needed at runtime as well as build time — without
-   it Clerk's server middleware fails every page render with a 500.
-4. **Routing**: point `ets2.kylescudder.co.uk` at the `ets2-data-dashboard`
+   The Better Auth settings are required: pages, `/api/auth/*` and the `/ws`
+   handshake fail closed and `verify.ts` rejects the release while any is
+   missing or malformed. Validation errors name settings, never values. Keep the
+   secret stable across releases, and keep it and the Brevo key out of Git,
+   image layers and CI. Variables the app does not use are ignored. Changing
+   `app.env` takes effect when the `web` container is recreated.
+3. **Routing**: point `ets2.kylescudder.co.uk` at the `ets2-data-dashboard`
    alias on `platform-web`, port 3000. Do not route the old Supabase host
    `api.ets2.kylescudder.co.uk`: it is a two-level subdomain, which Cloudflare's
    Universal SSL does not cover, so it cannot serve TLS. Already-installed
@@ -69,7 +74,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    The dashboard's live view uses a WebSocket at `/ws` on the main hostname, so
    the proxy must pass `Upgrade` through (keep it behind the same edge policy as
    the pages). If it doesn't, the dashboard still works by polling every 2s.
-5. **deploy-core**: copy `hooks.py`, add the registry entry, run
+4. **deploy-core**: copy `hooks.py`, add the registry entry, run
    `deploy_service.py --config … validate`, then flip `enabled: true`.
 
 ## Hooks
@@ -80,42 +85,22 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 - `health(image)` — `healthz` returns `{status:"ok"}` only when the database
   is reachable.
 - `accept(image)` — `verify.ts` checks the served revision matches the image,
-  the sign-in page of the selected provider renders, read APIs and ingest refuse
-  anonymous requests, and the provider's (Clerk or Better Auth) and origin
-  configuration is present.
+  the Better Auth settings are valid, `/auth/sign-in` renders, read APIs and
+  ingest refuse anonymous requests, `/api/auth/get-session` answers while
+  sign-up answers 404, and `APP_ORIGIN` is set.
 
-## Better Auth rollout and Clerk rollback
+## Authentication (Better Auth)
 
-`AUTH_PROVIDER` selects exactly one authentication provider for the server, the
-rendered client and the `/ws` handshake. It defaults to `clerk`, so this additive
-release can be deployed before the production sign-in flow changes. The image is
-the same for both providers (the provider is read at runtime); changing it
-requires recreating the `web` container, not hot-swapping its environment.
-
-The owner migration (`0001_better_auth`) adds `auth_user`, `auth_session`,
-`auth_account`, `auth_verification`, `auth_passkey`, `auth_rate_limit` and
-`auth_email_limit`, plus a nullable, unique `users.auth_user_id` that links a
-driver to their Better Auth account (`ON DELETE SET NULL`). Nothing existing is
-rewritten or dropped, and `users.clerk_user_id` stays in place for rollback. The
-runtime keeps its connection budget and restricted role; the existing grant step
-covers the new tables.
-
-Add these to the protected `app.env`, keeping the Clerk keys:
-
-```dotenv
-AUTH_PROVIDER=clerk
-BETTER_AUTH_URL=<same value as APP_ORIGIN, https in production>
-BETTER_AUTH_SECRET=<stable, cryptographically random, at least 32 characters>
-BREVO_API_KEY=<Cabmate transactional API key>
-AUTH_EMAIL_FROM=<sender on a Brevo-verified domain>
-AUTH_EMAIL_DAILY_LIMIT=40
-AUTH_ALLOWED_EMAILS=<comma-separated driver emails>
-```
-
-Keep the secret stable across releases, and keep it and the Brevo key out of Git,
-image layers and CI. These settings are validated at runtime even while Clerk is
-selected (a malformed `AUTH_ALLOWED_EMAILS` fails page loads), so check them
-before recreating the container. Validation errors name settings, never values.
+Better Auth handles sign-in for the server, the rendered client and the `/ws`
+handshake. Its tables (`auth_user`, `auth_session`, `auth_account`,
+`auth_verification`, `auth_passkey`, `auth_rate_limit`, `auth_email_limit`,
+`user_profile`) come from the owner migrations. A driver row is linked to its
+Better Auth account by the nullable, unique `users.auth_user_id`
+(`ON DELETE SET NULL`); a signed-in user without a linked driver gets a new
+driver row (placeholder profile and a fresh agent key) on first sign-in. The
+runtime keeps its connection budget and restricted role; the grant step covers
+the auth tables. Agents are unaffected by sign-in: ingest uses each driver's API
+key.
 
 ### Access model
 
@@ -158,8 +143,7 @@ refused, and paths starting with `//` are rejected); the client applies the same
 rule (`safeAppPath`) to every navigation the auth UI makes. `/api/auth/*`
 forwards only the endpoints Cabmate uses (session, sign-out, account name, email
 code, password, magic link, password reset, change password, list accounts,
-passkeys) and answers 404 for everything else, and for everything while
-`AUTH_PROVIDER=clerk`. Passkeys use the exact hostname of `BETTER_AUTH_URL` as
+passkeys) and answers 404 for everything else. Passkeys use the exact hostname of `BETTER_AUTH_URL` as
 RP ID, require user verification and a signed-in, allowlisted driver to enroll.
 
 On phones, magic links open wherever the mail app opens links, so email codes
@@ -171,7 +155,7 @@ transactional mail; respect suppression state and keep email codes as recovery.
 
 ### Profile photo
 
-Under Better Auth, Your cab's profile form also uploads and removes a profile
+Your cab's profile form also uploads and removes a profile
 photo, which the header avatar menu shows. The browser crops JPEG/PNG/WebP files
 (up to 10 MB) to a 512-pixel square JPEG; `PUT /api/profile/avatar` then caps the
 body at 512 KB and 4 megapixels, checks the file signature, decodes and
@@ -181,55 +165,14 @@ re-encodes it with `sharp` to a 256-pixel JPEG without metadata, and stores it a
 `/api/profile/avatar?v=<random version>`, which changes on every upload. `GET`,
 `PUT` and `DELETE` serve only the signed-in driver's own photo, need a verified
 email still in `AUTH_ALLOWED_EMAILS`, require the app Origin for changes, and
-answer `no-store`, `nosniff`, same-origin CORP; the route is 404 while
-`AUTH_PROVIDER=clerk`. `update-user` still accepts only the account name, so
+answer `no-store`, `nosniff`, same-origin CORP. `update-user` still accepts only the account name, so
 `user.image` can never point elsewhere. The photo is private: driver cards, the
 map and the leaderboard do not show it. It is covered by the existing encrypted
 database backups, and the owner migration's runtime grant (`all tables in schema
 public`) already includes the new table, so no extra volume, service or secret is
-needed. Keep the table on rollback; Clerk mode ignores it. `sharp` ships prebuilt
+needed. `sharp` ships prebuilt
 libvips for linux-x64/arm64 glibc, so the `oven/bun` runtime image needs no extra
 packages.
-
-### Linking existing drivers
-
-Driver data is keyed by `users.id`, and each driver row carries its Clerk user
-ID. Under Better Auth the driver is found through `users.auth_user_id` instead;
-a Better Auth user without a link gets a new driver row on first sign-in (as
-Clerk did). So link existing drivers **before** switching provider, or they
-would start with an empty cab and a new agent key.
-
-`apps/web/server/link-clerk-users.ts` lists Clerk users through the Clerk
-Backend API, takes each user's **verified primary email**, finds or creates the
-Better Auth user (`emailVerified: true`) and sets `users.auth_user_id`. It is a
-dry run unless `--apply` is given, idempotent, prints counts only (never emails,
-IDs or keys), and needs `CLERK_SECRET_KEY` and the runtime database URL (it uses
-one connection, the budget's "one runtime CLI job"). Drivers without a verified
-primary email, and any driver whose email already belongs to a different
-linked driver, are counted as `noVerifiedEmail`/`conflicts` and left for manual
-resolution. Linking never grants access by itself: the address must also be in
-`AUTH_ALLOWED_EMAILS` (`notAllowlisted` counts those that are not).
-
-### Cutover
-
-1. Deploy the image as usual with `AUTH_PROVIDER=clerk`; the owner migration adds
-   the tables. Existing acceptance checks must pass unchanged.
-2. Add the settings above to `app.env` (still `clerk`), and recreate `web`.
-3. Dry run, then apply, from the running container:
-   `docker compose exec -T web bun apps/web/server/link-clerk-users.ts` then
-   `… link-clerk-users.ts --apply`. Review the counts; rerunning is safe.
-4. Set `AUTH_PROVIDER=better-auth` and recreate only `web` with the same image.
-   `verify.ts` then checks `/auth/sign-in`, `/api/auth/get-session` and that
-   sign-up answers 404.
-5. Verify email-code sign-in lands on Your cab with the driver's existing
-   profile and agent key, the live map socket, password set/reset, sign-out,
-   and passkey enrollment/sign-in on a real device.
-
-Rollback: set `AUTH_PROVIDER=clerk` and recreate `web` with the same image. Keep
-the Clerk keys, production Clerk app and DNS until Better Auth has been stable.
-Leave the additive auth tables and links in place; never restore an older
-database to change providers, because that would discard newer telemetry.
-Agents are unaffected by either switch: ingest uses each driver's API key.
 
 ## Connection budget
 
@@ -256,7 +199,7 @@ isolated health plus a one-shot job while retaining two spare slots. Keeping fou
 query slots with LISTEN, health and a job would use seven and leave only one spare. No measured
 production throughput guarantee is claimed; monitor ingest latency and query
 queueing after an approved rollout. Batch ingestion, transactions, live sockets,
-rollup serialization, Clerk and RadioMax contracts remain intact.
+rollup serialization, auth and RadioMax contracts remain intact.
 
 Query, health, one-shot and owner-migration clients use `idle_timeout: 20` and
 `connect_timeout: 10` (seconds). CLI clients close in `finally`. Owner migrations
@@ -308,7 +251,7 @@ admits two operator sessions, and proves the ninth login fails with `53300`.
 It also runs concurrent healthcheck CLIs and owner migration, verifies private
 migration metadata/DDL denial, health failure/recovery, one-shot queuing, and real
 WebSocket pushes before/after forced LISTEN-backend reconnection. The test socket
-transport bypasses auth only in the harness; production Clerk/origin guards are
+transport bypasses auth only in the harness; production session/origin guards are
 unchanged. Database observation connections are test-admin connections, counted
 separately from the runtime budget. Cleanup removes only this test's UUID-named
 database and roles; the caller owns the disposable container lifecycle. CI runs
@@ -334,8 +277,11 @@ python3 -B /Users/kyle/platform/deploy-core/current/deploy_service.py \
 
 ## Moving data off the old Supabase stack
 
-Supabase auth users have to be mapped to Clerk users explicitly; nothing is
-matched by email.
+This import predates Better Auth and is kept for reference only: production was
+moved in place and never needs it. Its identity map still targets the old Clerk
+user IDs (stored in the now-unused `users.clerk_user_id`), so imported drivers
+are not linked to a Better Auth account; each would need `users.auth_user_id`
+set by hand before first sign-in, or the driver gets a new, empty cab.
 
 1. Export a consistent read-only snapshot (contains agent API keys — keep it private):
    `LEGACY_DATABASE_URL=postgres://… bun apps/web/server/export-legacy.ts /private/ets2-snapshot.json`

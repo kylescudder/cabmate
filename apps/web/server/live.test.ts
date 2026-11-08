@@ -61,17 +61,13 @@ describe('live driver socket', () => {
     liveSocket.close?.(socket as never, 1000, '');
   });
 
-  test('handshakes without a Clerk session or from another origin are refused', async () => {
-    const saved = { key: process.env.CLERK_SECRET_KEY, origin: process.env.APP_ORIGIN };
+  test('handshakes from another origin are refused', async () => {
+    const saved = process.env.APP_ORIGIN;
     process.env.APP_ORIGIN = 'https://ets2.test';
     try {
-      delete process.env.CLERK_SECRET_KEY;
-      expect(await authorizeSocket(new Request('https://ets2.test/ws', { headers: { origin: 'https://ets2.test' } }))).toBe(false);
-      process.env.CLERK_SECRET_KEY = 'sk_test_unused';
       expect(await authorizeSocket(new Request('https://ets2.test/ws', { headers: { origin: 'https://evil.example' } }))).toBe(false);
     } finally {
-      if (saved.key === undefined) delete process.env.CLERK_SECRET_KEY; else process.env.CLERK_SECRET_KEY = saved.key;
-      if (saved.origin === undefined) delete process.env.APP_ORIGIN; else process.env.APP_ORIGIN = saved.origin;
+      if (saved === undefined) delete process.env.APP_ORIGIN; else process.env.APP_ORIGIN = saved;
     }
   });
 });
