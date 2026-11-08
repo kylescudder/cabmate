@@ -1,3 +1,4 @@
+import { useSession } from '@better-auth-ui/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
@@ -18,7 +19,9 @@ export function BetterAuthAccount() {
 }
 
 function Account() {
-  const { data: session } = authClient.useSession()
+  // Better Auth UI's session query, not the client's nanostore, which can still
+  // hold the signed-out value after a "Sign in again" round trip.
+  const { data: session } = useSession(authClient)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [error, setError] = useState('')
