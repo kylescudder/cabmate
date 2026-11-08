@@ -63,8 +63,10 @@ export function LiveMap() {
 
   const online = drivers.filter((d) => d.status === "online" && d.latest);
 
+  // `isolate` keeps Leaflet's pane z-indexes (400-1000) inside the map, so the
+  // account menu and dialogs opened from the header stay on top of it.
   return (
-    <div className="relative -mx-6 -my-8" style={{ height: "calc(100vh - 73px)" }}>
+    <div className="relative isolate -mx-6 -my-8" style={{ height: "calc(100vh - 73px)" }}>
       <MapContainer
         center={ETS2_MAP_CENTER}
         zoom={2}
