@@ -10,7 +10,7 @@ import { users } from './schema';
 const databaseUrl = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 const { db, client } = connect(databaseUrl);
 const anonymous = createApi(() => db, async () => null);
-const signedIn = createApi(() => db, async () => 'user_reader');
+const signedIn = createApi(() => db, async () => ({ provider: 'clerk' as const, id: 'user_reader' }));
 const DAY_MS = 86_400_000;
 
 // One sample per second from `start`, moving the odometer `stepKm` each second, posted in agent-sized batches.

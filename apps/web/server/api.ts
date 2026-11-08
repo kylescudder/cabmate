@@ -6,7 +6,8 @@ import { z } from 'zod';
 import type { Database } from './db';
 import { MAX_MINUTE_KM, steps } from './distance';
 import { ingest, newApiKey } from './ingest';
-import { jobs, sessions, telemetry, users, vehicles } from './schema';
+import { authUser, jobs, sessions, telemetry, users } from './schema';
+import type { Identity } from './identity';
 
 const profileInput = z.object({
   name: z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9-]{0,30}[a-z0-9]$/),
@@ -14,11 +15,16 @@ const profileInput = z.object({
 });
 const publicUser = { id: users.id, name: users.name, display_name: users.displayName, avatar_url: users.avatarUrl };
 
-export async function profile(db: Database, clerkUserId: string) {
+// First sign-in creates the driver row (placeholder username/display name and a
+// fresh agent key), whichever provider is active. Existing Clerk drivers are linked
+// to Better Auth by link-clerk-users.ts before the provider is switched.
+export async function profile(db: Database, who: Identity) {
   const id = randomUUID();
-  await db.insert(users).values({ id, clerkUserId, name: `driver-${id.slice(0, 24)}`, displayName: 'Driver', apiKey: newApiKey() })
-    .onConflictDoNothing({ target: users.clerkUserId });
-  return (await db.select({ ...publicUser, api_key: users.apiKey }).from(users).where(eq(users.clerkUserId, clerkUserId)))[0];
+  const column = who.provider === 'clerk' ? users.clerkUserId : users.authUserId;
+  const link = who.provider === 'clerk' ? { clerkUserId: who.id } : { authUserId: who.id };
+  await db.insert(users).values({ id, ...link, name: `driver-${id.slice(0, 24)}`, displayName: 'Driver', apiKey: newApiKey() })
+    .onConflictDoNothing({ target: column });
+  return (await db.select({ ...publicUser, api_key: users.apiKey }).from(users).where(eq(column, who.id)))[0];
 }
 
 // Shared by GET /api/drivers and the /ws broadcaster, so both report the same online state.
@@ -72,7 +78,7 @@ export async function driverDays(db: Database, userId: string) {
   `);
 }
 
-export function createApi(getDb: () => Database, getIdentity: () => Promise<string | null>) {
+export function createApi(getDb: () => Database, getIdentity: (request: Request) => Promise<Identity | null>) {
   return async (request: Request): Promise<Response> => {
     const { pathname, origin } = new URL(request.url);
     try {
@@ -81,7 +87,7 @@ export function createApi(getDb: () => Database, getIdentity: () => Promise<stri
         if (Number(request.headers.get('content-length') ?? 0) > 512_000) return Response.json({ error: 'Payload too large' }, { status: 413 });
         return await ingest(getDb(), request);
       }
-      const identity = await getIdentity();
+      const identity = await getIdentity(request);
       if (!identity) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: { 'cache-control': 'no-store' } });
       // Every mutation uses same-origin JSON. Agent ingestion uses a separate bearer credential.
       if (request.method !== 'GET' && (!validAppOrigin(request, origin) || !request.headers.get('content-type')?.startsWith('application/json'))) {
@@ -92,16 +98,23 @@ export function createApi(getDb: () => Database, getIdentity: () => Promise<stri
       if (pathname === '/api/profile' && request.method === 'GET') {
         const own = await profile(db, identity);
         const [{ count }] = await db.select({ count: sql<number>`count(*)::int` }).from(sessions).where(eq(sessions.userId, own.id));
-        result = { ...own, sessionCount: count };
+        // Better Auth drivers also see their private profile photo (null under Clerk).
+        const [account] = identity.provider === 'better-auth'
+          ? await db.select({ image: authUser.image }).from(authUser).where(eq(authUser.id, identity.id)) : [];
+        result = { ...own, sessionCount: count, photo: account?.image ?? null };
       } else if (pathname === '/api/profile' && request.method === 'PATCH') {
         const input = profileInput.safeParse(await request.json().catch(() => null));
         if (!input.success) return Response.json({ error: 'Enter a display name and a username of 2–32 lowercase letters, digits or hyphens.' }, { status: 400 });
-        await profile(db, identity);
-        await db.update(users).set({ name: input.data.name, displayName: input.data.display_name }).where(eq(users.clerkUserId, identity));
+        const own = await profile(db, identity);
+        await db.transaction(async tx => {
+          await tx.update(users).set({ name: input.data.name, displayName: input.data.display_name }).where(eq(users.id, own.id));
+          // Keep the account menu's name in step with the driver's display name.
+          if (identity.provider === 'better-auth') await tx.update(authUser).set({ name: input.data.display_name, updatedAt: new Date() }).where(eq(authUser.id, identity.id));
+        });
         result = { ok: true };
       } else if (pathname === '/api/profile/key' && request.method === 'POST') {
-        await profile(db, identity);
-        const [row] = await db.update(users).set({ apiKey: newApiKey() }).where(eq(users.clerkUserId, identity)).returning({ api_key: users.apiKey });
+        const own = await profile(db, identity);
+        const [row] = await db.update(users).set({ apiKey: newApiKey() }).where(eq(users.id, own.id)).returning({ api_key: users.apiKey });
         result = row;
       } else if (pathname === '/api/drivers' && request.method === 'GET') {
         result = await listDrivers(db);

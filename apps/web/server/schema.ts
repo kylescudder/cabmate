@@ -1,9 +1,12 @@
+import { authUser } from './auth-schema';
 import { pgTable, uuid, text, timestamp, real, doublePrecision, integer, primaryKey, uniqueIndex, index } from 'drizzle-orm/pg-core';
 
 const time = (name: string) => timestamp(name, { withTimezone: true, mode: 'string' });
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   clerkUserId: text('clerk_user_id').unique(),
+  // Better Auth identity for this driver; set on first sign-in or by link-clerk-users.ts.
+  authUserId: text('auth_user_id').unique().references(() => authUser.id, { onDelete: 'set null' }),
   name: text('name').notNull().unique(),
   displayName: text('display_name').notNull(),
   avatarUrl: text('avatar_url'),
@@ -45,3 +48,5 @@ export const rollups = pgTable('telemetry_rollup_minute', {
   bucket: time('bucket').notNull(), avgSpeedKph: real('avg_speed_kph'), maxSpeedKph: real('max_speed_kph'),
   distanceKm: doublePrecision('distance_km'), samples: integer('samples'),
 }, t => [primaryKey({ columns: [t.userId, t.bucket] })]);
+export * from './auth-schema';
+export * from './profile-schema';

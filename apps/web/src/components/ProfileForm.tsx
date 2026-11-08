@@ -1,18 +1,23 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { UserRound } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { useUnits, type UnitSystem } from "../lib/units";
+import { profileAvatar } from "../lib/profile-ui";
+import { avatarTypes } from "../lib/profile";
 
 interface Profile {
   id: string;
   name: string;
   display_name: string;
   avatar_url: string | null;
+  photo?: string | null;
 }
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])?$/;
 
-export function ProfileForm({ initial }: { initial: Profile }) {
+// `photos` is on in Better Auth mode, where /api/profile/avatar stores the photo.
+export function ProfileForm({ initial, photos = false }: { initial: Profile; photos?: boolean }) {
   const queries = useQueryClient();
   const { units, setUnits } = useUnits();
   const [displayName, setDisplayName] = useState(initial.display_name);
@@ -20,6 +25,34 @@ export function ProfileForm({ initial }: { initial: Profile }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const [photo, setPhoto] = useState(initial.photo ?? null);
+  const [photoBusy, setPhotoBusy] = useState<"upload" | "remove" | null>(null);
+  const [photoErr, setPhotoErr] = useState<string | null>(null);
+  const [photoOk, setPhotoOk] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  // Upload and removal apply straight away; refreshing every query also
+  // refreshes the Better Auth session, so the header menu shows the change.
+  async function changePhoto(action: "upload" | "remove", file?: File) {
+    setPhotoBusy(action);
+    setPhotoErr(null);
+    setPhotoOk(null);
+    try {
+      if (action === "upload" && file) {
+        setPhoto(await profileAvatar.upload(await profileAvatar.resize(file)));
+        setPhotoOk("Photo updated.");
+      } else {
+        await profileAvatar.delete();
+        setPhoto(null);
+        setPhotoOk("Photo removed.");
+      }
+      await queries.invalidateQueries();
+    } catch (error) { setPhotoErr((error as Error).message); }
+    finally {
+      setPhotoBusy(null);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,6 +90,49 @@ export function ProfileForm({ initial }: { initial: Profile }) {
       onSubmit={onSubmit}
       className="max-w-lg rounded-lg border border-edge bg-panel p-6 space-y-4"
     >
+      {photos && (
+        <div>
+          <span className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
+            Profile photo
+          </span>
+          <div className="flex items-center gap-4">
+            {photo ? (
+              <img src={photo} alt="Your profile photo" className="size-16 shrink-0 rounded-full border border-edge object-cover" />
+            ) : (
+              <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full border border-edge bg-ink text-slate-500">
+                <UserRound className="size-7" />
+              </span>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <input
+                ref={fileInput} id="photo" type="file" accept={avatarTypes.join(",")} className="sr-only"
+                tabIndex={-1} aria-hidden="true" disabled={photoBusy !== null}
+                onChange={(e) => { const file = e.target.files?.[0]; if (file) void changePhoto("upload", file); }}
+              />
+              <button
+                type="button" disabled={photoBusy !== null} onClick={() => fileInput.current?.click()}
+                className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-accent disabled:opacity-50"
+              >
+                {photoBusy === "upload" ? "Uploading…" : photo ? "Change photo" : "Upload photo"}
+              </button>
+              {photo && (
+                <button
+                  type="button" disabled={photoBusy !== null} onClick={() => void changePhoto("remove")}
+                  className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-red-400 disabled:opacity-50"
+                >
+                  {photoBusy === "remove" ? "Removing…" : "Remove"}
+                </button>
+              )}
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            JPEG, PNG or WebP. Shown in your account menu; only you can see it.
+          </p>
+          {photoErr && <div role="alert" className="text-sm text-red-400 mt-1">{photoErr}</div>}
+          {photoOk && !photoErr && <div role="status" className="text-sm text-green-300 mt-1">{photoOk}</div>}
+        </div>
+      )}
+
       <div>
         <label htmlFor="display-name" className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
           Display name
