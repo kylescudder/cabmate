@@ -278,16 +278,15 @@ python3 -B /Users/kyle/platform/deploy-core/current/deploy_service.py \
 ## Moving data off the old Supabase stack
 
 This import predates Better Auth and is kept for reference only: production was
-moved in place and never needs it. Its identity map still targets the old Clerk
-user IDs (stored in the now-unused `users.clerk_user_id`), so imported drivers
-are not linked to a Better Auth account; each would need `users.auth_user_id`
-set by hand before first sign-in, or the driver gets a new, empty cab.
+moved in place and never needs it. The old Supabase `auth_user_id` is dropped on
+import, so imported drivers are not linked to a Better Auth account; each needs
+`users.auth_user_id` set by hand before first sign-in, or the driver gets a new,
+empty cab.
 
 1. Export a consistent read-only snapshot (contains agent API keys — keep it private):
    `LEGACY_DATABASE_URL=postgres://… bun apps/web/server/export-legacy.ts /private/ets2-snapshot.json`
-2. Write `identity-map.json`: `{ "<supabase auth user uuid>": "user_<clerk id>", … }`.
-3. For a fresh environment only, import into the **empty** `cabmate` database as the owner:
-   `DATABASE_URL=postgres://cabmate_owner@…/cabmate bun run db:import /private/ets2-snapshot.json identity-map.json`
+2. For a fresh environment only, import into the **empty** `cabmate` database as the owner:
+   `DATABASE_URL=postgres://cabmate_owner@…/cabmate bun run db:import /private/ets2-snapshot.json`
    Existing production data is renamed in place per [CABMATE.md](CABMATE.md), never re-imported.
 
 UUIDs and agent API keys are preserved, so friends' installed agents keep
