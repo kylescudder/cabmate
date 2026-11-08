@@ -48,9 +48,12 @@ test('station outage, retry recovery and empty state', async ({ page, request },
 test('driving routes and APIs remain protected, and both ingestion paths reject missing keys', async ({ page, request }, testInfo) => {
   for (const path of ['/', '/drivers', '/leaderboard', '/profile', '/u/example']) {
     await page.goto(path);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/auth\/sign-in\?redirectTo=/);
     await expect(page.getByRole('heading', { name: 'Welcome to Cabmate' })).toBeVisible();
   }
+  // The old sign-in bookmark lands on the Better Auth sign-in page.
+  await page.goto('/login');
+  await expect(page).toHaveURL(/\/auth\/sign-in$/);
   await page.screenshot({ path: `.artifacts/companion-merge/${testInfo.project.name}-login.png`, fullPage: true });
   for (const path of ['/api/drivers', '/api/profile', '/api/leaderboard', '/api/drivers/example']) {
     expect((await request.get(path)).status()).toBe(401);

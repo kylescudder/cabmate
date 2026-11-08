@@ -52,7 +52,7 @@ afterAll(() => {
 
 const initial = { id: 'driver-1', name: 'night-trucker', display_name: 'Night Trucker', avatar_url: null };
 
-async function render(photos: boolean, photo: string | null = null) {
+async function render(photo: string | null = null) {
   act(() => root?.unmount());
   container = document.createElement('div');
   document.body.replaceChildren(container);
@@ -61,7 +61,7 @@ async function render(photos: boolean, photo: string | null = null) {
   const invalidate = client.invalidateQueries.bind(client);
   client.invalidateQueries = ((...args: Parameters<typeof invalidate>) => { invalidations++; return invalidate(...args); }) as typeof invalidate;
   root = createRoot(container);
-  await act(async () => root!.render(createElement(QueryClientProvider, { client }, createElement(ProfileForm, { initial: { ...initial, photo }, photos }))));
+  await act(async () => root!.render(createElement(QueryClientProvider, { client }, createElement(ProfileForm, { initial: { ...initial, photo } }))));
   return { invalidations: () => invalidations };
 }
 
@@ -72,15 +72,8 @@ async function choose(file: File) {
   await act(async () => { input.dispatchEvent(new browser.Event('change', { bubbles: true }) as unknown as Event); });
 }
 
-test('Clerk mode keeps the original form without a photo section', async () => {
-  await render(false);
-  expect(container.textContent).not.toContain('Profile photo');
-  expect(container.querySelector('input[type=file]')).toBeNull();
-  expect(buttons()).toEqual(['Save']);
-});
-
 test('drivers upload, replace and remove their photo from Your cab, refreshing the account menu', async () => {
-  const { invalidations } = await render(true);
+  const { invalidations } = await render();
   expect(container.textContent).toContain('Profile photo');
   expect(container.querySelector('img')).toBeNull();
   expect(buttons()).toEqual(['Upload photo', 'Save']);
@@ -112,7 +105,7 @@ test('drivers upload, replace and remove their photo from Your cab, refreshing t
 });
 
 test('server refusals are shown and leave the current photo in place', async () => {
-  await render(true, '/api/profile/avatar?v=kept');
+  await render('/api/profile/avatar?v=kept');
   reply = () => Response.json({ error: 'This photo is too large.' }, { status: 413 });
   await choose(new File(['photo'], 'big.jpg', { type: 'image/jpeg' }));
   expect(container.querySelector('[role=alert]')!.textContent).toBe('This photo is too large.');

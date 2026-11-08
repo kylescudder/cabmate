@@ -6,7 +6,6 @@ import { connect } from './db';
 import { createApi } from './api';
 import { createCabmateAuth } from './auth-factory';
 import { betterAuthIdentity } from './better-auth';
-import { fetchClerkUsers, linkClerkUsers, type ClerkUser } from './link-clerk-users';
 import { importLegacy } from './legacy';
 import { createAvatarHandler } from './profile-avatar';
 import { authUser, userProfile, users } from './schema';
@@ -62,7 +61,7 @@ async function signIn(fixture: Fixture, email = 'driver@example.com') {
 }
 
 describe('Better Auth sign-in', () => {
-  test('email codes go only to invited drivers, are hashed and single-use, and create the driver like Clerk did', async () => {
+  test('email codes go only to invited drivers, are hashed and single-use, and create the driver on first sign-in', async () => {
     const fixture = authFixture();
     const outsider = await fixture.request('/email-otp/send-verification-otp', { email: 'outsider@example.com', type: 'sign-in' });
     expect(outsider.status).toBe(200);
@@ -89,7 +88,7 @@ describe('Better Auth sign-in', () => {
     const cookie = mergeCookies(signedIn);
     const { user } = await signedIn.json() as { user: { id: string } };
 
-    // First sign-in creates the driver row the same way Clerk-era sign-in did.
+    // First sign-in creates the driver row with a placeholder profile and a fresh agent key.
     const profile = await fixture.call('/api/profile', cookie);
     expect(profile.status).toBe(200);
     const own = await profile.json();
@@ -100,7 +99,6 @@ describe('Better Auth sign-in', () => {
     expect((await (await fixture.call('/api/profile', cookie)).json()).id).toBe(own.id);
     const [row] = await db.select().from(users).where(eq(users.id, own.id));
     expect(row.authUserId).toBe(user.id);
-    expect(row.clerkUserId).toBeNull();
 
     // Display name edits also update the account menu name; cross-site writes are refused.
     const patch = (headers: Record<string, string> = {}) => fixture.call('/api/profile', cookie, {
@@ -358,7 +356,7 @@ describe('profile photo', () => {
 
 describe('app routes', () => {
   const settings = {
-    AUTH_PROVIDER: 'better-auth', BETTER_AUTH_URL: origin, BETTER_AUTH_SECRET: secret, BREVO_API_KEY: 'fixture-never-used',
+    BETTER_AUTH_URL: origin, BETTER_AUTH_SECRET: secret, BREVO_API_KEY: 'fixture-never-used',
     AUTH_EMAIL_FROM: 'cabmate@example.com', AUTH_ALLOWED_EMAILS: allowed.join(','),
   };
   const original = Object.fromEntries(Object.keys(settings).map(key => [key, process.env[key]]));
@@ -367,7 +365,7 @@ describe('app routes', () => {
     method, headers: { Origin: origin, 'Content-Type': 'application/json', 'CF-Connecting-IP': '198.51.100.7' }, body: method === 'POST' ? '{}' : undefined,
   }));
 
-  test('only the endpoints Cabmate uses are reachable, and none in Clerk mode', async () => {
+  test('only the endpoints Cabmate uses are reachable', async () => {
     const { authHandler } = await import('../src/routes/api.auth.$');
     try {
       Object.assign(process.env, settings);
@@ -377,19 +375,13 @@ describe('app routes', () => {
         expect([path, (await post(authHandler, path, 'GET')).status]).not.toEqual([path, 404]);
       for (const path of ['/sign-up/email', '/email-otp/get-verification-otp', '/delete-user', '/change-email', '/admin/list-users'])
         expect([path, (await post(authHandler, path)).status]).toEqual([path, 404]);
-      process.env.AUTH_PROVIDER = 'clerk';
-      for (const path of ['/get-session', '/sign-in/email-otp', '/sign-in/email'])
-        expect((await post(authHandler, path, path === '/get-session' ? 'GET' : 'POST')).status).toBe(404);
     } finally { restore(); }
   });
 
-  test('the photo route is 404 in Clerk mode and needs a session in Better Auth mode', async () => {
+  test('the photo route needs a session', async () => {
     const { avatarHandler } = await import('../src/routes/api.profile.avatar');
     const get = () => avatarHandler(new Request(origin + '/api/profile/avatar'));
     try {
-      process.env.AUTH_PROVIDER = 'clerk';
-      expect((await get()).status).toBe(404);
-      expect((await avatarHandler(new Request(origin + '/api/profile/avatar', { method: 'DELETE', headers: { Origin: origin } }))).status).toBe(404);
       Object.assign(process.env, settings);
       expect((await get()).status).toBe(401);
     } finally { restore(); }
@@ -405,74 +397,11 @@ describe('app routes', () => {
       expect(await socket({ origin, cookie })).toBe(true);
       expect(await socket({ origin })).toBe(false);
       expect(await socket({ origin: 'https://evil.example', cookie })).toBe(false);
-      // Clerk mode without Clerk keys stays signed out, exactly as before.
-      process.env.AUTH_PROVIDER = 'clerk';
-      expect(await socket({ origin, cookie })).toBe(false);
     } finally { restore(); delete process.env.APP_ORIGIN; }
-  });
-
-  test('Clerk identities keep resolving drivers through clerk_user_id', async () => {
-    const api = createApi(() => db, async () => ({ provider: 'clerk', id: 'user_clerk_1' }));
-    const first = await (await api(new Request(origin + '/api/profile'))).json();
-    expect(first.display_name).toBe('Driver');
-    expect((await (await api(new Request(origin + '/api/profile'))).json()).id).toBe(first.id);
-    const [row] = await db.select().from(users).where(eq(users.id, first.id));
-    expect(row.clerkUserId).toBe('user_clerk_1');
-    expect(row.authUserId).toBeNull();
-    expect((await createApi(() => db, async () => null)(new Request(origin + '/api/profile'))).status).toBe(401);
   });
 });
 
-describe('link-clerk-users', () => {
-  const clerkUser = (id: string, email: string, status = 'verified'): ClerkUser => ({
-    id, primary_email_address_id: 'e_' + id, email_addresses: [{ id: 'e_other', email_address: 'other@example.com', verification: { status: 'verified' } },
-      { id: 'e_' + id, email_address: email, verification: { status } }],
-  });
-
-  test('links existing drivers by verified primary email, dry-run first, idempotently', async () => {
-    const [driver] = await db.insert(users).values({ clerkUserId: 'user_a', name: 'mike', displayName: 'Mike', apiKey: 'key-mike' }).returning();
-    await db.insert(users).values([
-      { clerkUserId: 'user_b', name: 'sarah', displayName: 'Sarah', apiKey: 'key-sarah' },
-      { clerkUserId: 'user_c', name: 'early', displayName: 'Early', apiKey: 'key-early' },
-    ]);
-    // user_c already signed in with Better Auth before cutover and got a fresh driver: a conflict to resolve by hand.
-    const fixture = authFixture({ allowedEmails: [...allowed, 'early@example.com'] });
-    const early = await signIn(fixture, 'early@example.com');
-    await fixture.call('/api/profile', early.cookie);
-    const clerk = [clerkUser('user_a', 'Driver@Example.com'), clerkUser('user_b', 'sarah@example.com', 'unverified'),
-      clerkUser('user_c', 'early@example.com'), clerkUser('user_d', 'nobody@example.com')];
-
-    const dry = await linkClerkUsers(db, clerk, { apply: false, allowedEmails: allowed });
-    expect(dry).toEqual({ clerkUsers: 4, linked: 1, alreadyLinked: 0, createdAuthUsers: 1, noDriver: 1, noVerifiedEmail: 1, conflicts: 1, notAllowlisted: 1 });
-    expect(await db.select().from(authUser).where(eq(authUser.email, 'driver@example.com'))).toHaveLength(0);
-
-    expect(await linkClerkUsers(db, clerk, { apply: true })).toMatchObject({ linked: 1, createdAuthUsers: 1, conflicts: 1 });
-    expect(await linkClerkUsers(db, clerk, { apply: true })).toMatchObject({ linked: 0, alreadyLinked: 1, createdAuthUsers: 0 });
-    const [account] = await db.select().from(authUser).where(eq(authUser.email, 'driver@example.com'));
-    expect(account).toMatchObject({ emailVerified: true, name: 'Mike' });
-
-    // After cutover, the Clerk-era driver signs in by email code and keeps their profile and agent key.
-    await db.execute(sql`truncate auth_email_limit, auth_rate_limit`);
-    const { cookie } = await signIn(authFixture());
-    const own = await (await authFixture().call('/api/profile', cookie)).json();
-    expect(own).toMatchObject({ id: driver.id, name: 'mike', display_name: 'Mike', api_key: 'key-mike' });
-    expect(await db.select().from(users)).toHaveLength(4);
-  });
-
-  test('lists Clerk users page by page and reports only the HTTP status on failure', async () => {
-    const requested: string[] = [];
-    const page = (n: number) => Array.from({ length: n }, (_, i) => clerkUser(`user_${requested.length}_${i}`, 'x@example.com'));
-    const fetcher = (async (url: string, init: RequestInit) => {
-      expect(new Headers(init.headers).get('authorization')).toBe('Bearer sk_test_fixture');
-      requested.push(url);
-      return Response.json(page(requested.length === 1 ? 100 : 3));
-    }) as unknown as typeof fetch;
-    expect(await fetchClerkUsers('sk_test_fixture', fetcher)).toHaveLength(103);
-    expect(requested.map(url => new URL(url).searchParams.get('offset'))).toEqual(['0', '100']);
-    const failing = (async () => new Response('{"email":"secret@example.com"}', { status: 401 })) as unknown as typeof fetch;
-    await expect(fetchClerkUsers('sk_test_fixture', failing)).rejects.toThrow('Clerk user listing failed with HTTP 401');
-  });
-
+describe('legacy import', () => {
   test('the legacy Supabase import never treats its auth_user_id as a Better Auth link', async () => {
     const legacyUser = { id: randomUUID(), auth_user_id: randomUUID(), name: 'legacy', display_name: 'Legacy', avatar_url: null, api_key: 'key-legacy', created_at: new Date().toISOString() };
     const tables = { users: [legacyUser], vehicles: [], sessions: [], jobs: [], telemetry: [], telemetry_rollup_minute: [] };

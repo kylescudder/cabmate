@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Navigate, useLoaderData } from '@tanstack/react-router';
+import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
 import { Auth } from '../components/auth/auth';
 import { BetterAuthUIProvider } from '../components/BetterAuthUIProvider';
 import { Nav } from '../components/Nav';
@@ -9,10 +9,7 @@ export const Route = createFileRoute('/auth/$path')({
 });
 
 function AuthPage() {
-  const { provider } = useLoaderData({ from: '__root__' });
   const { path } = Route.useParams();
-  // Clerk keeps its own sign-in on /login; these routes are Better Auth only.
-  if (provider !== 'better-auth') return <Navigate to="/login" replace />;
   // Cabmate is invite-only: there is no sign-up.
   if (path === 'sign-up') return <Navigate to="/auth/$path" params={{ path: 'sign-in' }} replace />;
   return <><Nav publicView /><main id="main" className="cab-auth mx-auto mt-10 flex w-full max-w-sm flex-col gap-6 px-4 pb-12 sm:mt-16">

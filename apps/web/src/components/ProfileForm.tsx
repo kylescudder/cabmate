@@ -16,8 +16,8 @@ interface Profile {
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])?$/;
 
-// `photos` is on in Better Auth mode, where /api/profile/avatar stores the photo.
-export function ProfileForm({ initial, photos = false }: { initial: Profile; photos?: boolean }) {
+// The profile photo is stored privately by /api/profile/avatar.
+export function ProfileForm({ initial }: { initial: Profile }) {
   const queries = useQueryClient();
   const { units, setUnits } = useUnits();
   const [displayName, setDisplayName] = useState(initial.display_name);
@@ -90,48 +90,46 @@ export function ProfileForm({ initial, photos = false }: { initial: Profile; pho
       onSubmit={onSubmit}
       className="max-w-lg rounded-lg border border-edge bg-panel p-6 space-y-4"
     >
-      {photos && (
-        <div>
-          <span className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
-            Profile photo
-          </span>
-          <div className="flex items-center gap-4">
-            {photo ? (
-              <img src={photo} alt="Your profile photo" className="size-16 shrink-0 rounded-full border border-edge object-cover" />
-            ) : (
-              <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full border border-edge bg-ink text-slate-500">
-                <UserRound className="size-7" />
-              </span>
-            )}
-            <div className="flex flex-wrap gap-2">
-              <input
-                ref={fileInput} id="photo" type="file" accept={avatarTypes.join(",")} className="sr-only"
-                tabIndex={-1} aria-hidden="true" disabled={photoBusy !== null}
-                onChange={(e) => { const file = e.target.files?.[0]; if (file) void changePhoto("upload", file); }}
-              />
+      <div>
+        <span className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
+          Profile photo
+        </span>
+        <div className="flex items-center gap-4">
+          {photo ? (
+            <img src={photo} alt="Your profile photo" className="size-16 shrink-0 rounded-full border border-edge object-cover" />
+          ) : (
+            <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-full border border-edge bg-ink text-slate-500">
+              <UserRound className="size-7" />
+            </span>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileInput} id="photo" type="file" accept={avatarTypes.join(",")} className="sr-only"
+              tabIndex={-1} aria-hidden="true" disabled={photoBusy !== null}
+              onChange={(e) => { const file = e.target.files?.[0]; if (file) void changePhoto("upload", file); }}
+            />
+            <button
+              type="button" disabled={photoBusy !== null} onClick={() => fileInput.current?.click()}
+              className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-accent disabled:opacity-50"
+            >
+              {photoBusy === "upload" ? "Uploading…" : photo ? "Change photo" : "Upload photo"}
+            </button>
+            {photo && (
               <button
-                type="button" disabled={photoBusy !== null} onClick={() => fileInput.current?.click()}
-                className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-accent disabled:opacity-50"
+                type="button" disabled={photoBusy !== null} onClick={() => void changePhoto("remove")}
+                className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-red-400 disabled:opacity-50"
               >
-                {photoBusy === "upload" ? "Uploading…" : photo ? "Change photo" : "Upload photo"}
+                {photoBusy === "remove" ? "Removing…" : "Remove"}
               </button>
-              {photo && (
-                <button
-                  type="button" disabled={photoBusy !== null} onClick={() => void changePhoto("remove")}
-                  className="rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-red-400 disabled:opacity-50"
-                >
-                  {photoBusy === "remove" ? "Removing…" : "Remove"}
-                </button>
-              )}
-            </div>
+            )}
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            JPEG, PNG or WebP. Shown in your account menu; only you can see it.
-          </p>
-          {photoErr && <div role="alert" className="text-sm text-red-400 mt-1">{photoErr}</div>}
-          {photoOk && !photoErr && <div role="status" className="text-sm text-green-300 mt-1">{photoOk}</div>}
         </div>
-      )}
+        <p className="text-xs text-slate-500 mt-1">
+          JPEG, PNG or WebP. Shown in your account menu; only you can see it.
+        </p>
+        {photoErr && <div role="alert" className="text-sm text-red-400 mt-1">{photoErr}</div>}
+        {photoOk && !photoErr && <div role="status" className="text-sm text-green-300 mt-1">{photoOk}</div>}
+      </div>
 
       <div>
         <label htmlFor="display-name" className="block text-xs uppercase tracking-wide text-slate-500 mb-1">

@@ -1,5 +1,5 @@
 // Deliberate external-service boundary: only station state is a fixture. The
-// browser exercises the built app, its real adapter, Clerk guards and API routes.
+// browser exercises the built app, its real adapter, auth guards and API routes.
 import { mkdirSync } from 'node:fs';
 let mode = 'live';
 const controlToken = crypto.randomUUID();
@@ -20,7 +20,10 @@ const upstream = Bun.serve({ hostname: '127.0.0.1', port: 8299, fetch(request) {
 const child = Bun.spawn([process.execPath, 'apps/web/server/index.ts'], { stdout: 'inherit', stderr: 'inherit', env: {
   ...process.env, PORT: '3199', HOST: '127.0.0.1', APP_ORIGIN: 'http://127.0.0.1:3199',
   RADIO_ORIGIN: 'http://127.0.0.1:8299', DATABASE_URL: process.env.TEST_DATABASE_URL,
-  DATABASE_PASSWORD_FILE: '', CLERK_SECRET_KEY: '', CLERK_PUBLISHABLE_KEY: '', VITE_CLERK_PUBLISHABLE_KEY: '',
+  DATABASE_PASSWORD_FILE: '',
+  // Better Auth needs its settings to start; no email is sent by these tests.
+  BETTER_AUTH_URL: 'http://127.0.0.1:3199', BETTER_AUTH_SECRET: crypto.randomUUID() + crypto.randomUUID(),
+  BREVO_API_KEY: 'fixture-never-used', AUTH_EMAIL_FROM: 'cabmate@example.com', AUTH_ALLOWED_EMAILS: 'driver@example.com',
 } });
 const shutdown = () => { child.kill(); upstream.stop(true); };
 process.on('SIGTERM', shutdown); process.on('SIGINT', shutdown);

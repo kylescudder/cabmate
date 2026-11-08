@@ -1,20 +1,13 @@
-import { useClerk } from '@clerk/tanstack-react-start';
-import { Link, useLoaderData } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { lazy, Suspense } from 'react';
 
 // Better Auth UI loads only for signed-in drivers, never on public pages.
 const BetterAuthUserMenu = lazy(() => import('./BetterAuthUserMenu').then(({ BetterAuthUserMenu }) => ({ default: BetterAuthUserMenu })));
 
-function SignOut() {
-  const clerk = useClerk();
-  return <button onClick={() => clerk.signOut({ redirectUrl: '/login' })} className="nav-signout">Sign out</button>;
-}
 function Account() {
-  const { provider } = useLoaderData({ from: '__root__' });
-  if (provider === 'better-auth') return <div className="nav-account">
+  return <div className="nav-account">
     <Suspense fallback={<span className="block size-8 rounded-full bg-edge" />}><BetterAuthUserMenu /></Suspense>
   </div>;
-  return import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ? <SignOut /> : null;
 }
 export function Nav({ publicView = false }: { publicView?: boolean }) {
   return <header className="cab-header">

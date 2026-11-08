@@ -60,7 +60,7 @@ beforeAll(async () => {
     .toMatchObject({ code: 0, stderr: '' });
   await startLive();
   const api = createApi(database, async () => null);
-  // Test transport only; production /ws keeps its Clerk/origin checks in index.ts.
+  // Test transport only; production /ws keeps its session/origin checks in index.ts.
   server = Bun.serve<SocketData>({ hostname: '127.0.0.1', port: 0, websocket: liveSocket,
     fetch(request, server) {
       const { pathname } = new URL(request.url);

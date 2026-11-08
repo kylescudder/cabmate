@@ -1,7 +1,6 @@
 import { bigint, boolean, index, integer, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
-// Better Auth tables. Separate and additive: rolling back to Clerk never requires
-// removing auth data or touching drivers, vehicles or telemetry.
+// Better Auth tables, kept separate from drivers, vehicles and telemetry.
 const time = (name: string) => timestamp(name, { withTimezone: true });
 export const authUser = pgTable('auth_user', {
   id: text('id').primaryKey(),

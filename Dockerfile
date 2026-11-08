@@ -8,8 +8,6 @@ RUN bun install --frozen-lockfile --network-concurrency 8
 
 FROM dependencies AS build
 COPY . .
-ARG VITE_CLERK_PUBLISHABLE_KEY
-ENV VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
 RUN bun run build && bun run typecheck
 
 FROM dependencies AS production-dependencies

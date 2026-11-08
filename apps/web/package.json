@@ -10,8 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "bunx --no-install drizzle-kit generate",
     "db:migrate": "bun server/migrate.ts",
-    "db:import": "bun server/import-legacy.ts",
-    "auth:link-clerk-users": "bun server/link-clerk-users.ts"
+    "db:import": "bun server/import-legacy.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",
@@ -19,9 +18,6 @@
     "@better-auth-ui/react": "1.7.33",
     "@better-auth/drizzle-adapter": "1.7.18",
     "@better-auth/passkey": "1.7.18",
-    "@clerk/backend": "^3.26.3",
-    "@clerk/shared": "4.42.0",
-    "@clerk/tanstack-react-start": "^1.7.3",
     "@ets2/shared": "workspace:*",
     "@t3-oss/env-core": "0.13.11",
     "@tanstack/react-form": "1.33.5",

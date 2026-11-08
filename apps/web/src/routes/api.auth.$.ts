@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { readAuthEnv } from '../../server/env';
 
 // Only the endpoints Cabmate's sign-in and account UI use. Sign-up, email change,
 // account deletion and every other Better Auth endpoint stay unreachable.
@@ -17,7 +16,7 @@ export async function authHandler(request: Request) {
   const path = new URL(request.url).pathname.slice('/api/auth'.length);
   // The emailed reset link lands on /reset-password/<token> before redirecting.
   const allowed = paths.has(path) || /^\/reset-password\/[\w-]+$/.test(path);
-  if (readAuthEnv().AUTH_PROVIDER !== 'better-auth' || !allowed)
+  if (!allowed)
     return new Response('Not found', { status: 404, headers: { 'cache-control': 'no-store' } });
   const { getBetterAuth } = await import('../../server/better-auth');
   const response = await getBetterAuth().handler(request);

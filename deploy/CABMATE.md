@@ -4,6 +4,10 @@
 > repositories: both services now live in Cabmate. See
 > [repository consolidation](REPOSITORY-CONSOLIDATION.md). The runtime, hostnames,
 > audio contract and deployment approval requirements remain separate.
+>
+> Cabmate now signs in with Better Auth only; Clerk has been removed. The Clerk
+> steps below are kept as the record of the 31 October 2026 rollout. For current
+> authentication settings see [deploy/README.md](README.md#authentication-better-auth).
 
 Kyle chose Cabmate on 31 October 2026. RadioMax remains the station name.
 This is the implementation plan for an approved future rollout, not a record of

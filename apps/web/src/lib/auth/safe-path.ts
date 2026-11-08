@@ -1,5 +1,5 @@
 // After any sign-in method, return to the driver's cab (where new drivers set up
-// the telemetry agent, as with Clerk). A `?redirectTo=` on the auth route, such
+// the telemetry agent). A `?redirectTo=` on the auth route, such
 // as the protected page that sent them to sign in, takes priority.
 export const appHome = '/profile'
 
