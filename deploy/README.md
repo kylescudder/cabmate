@@ -1,6 +1,11 @@
 # Deploying to Herman
 
-Cabmate integration and the approval-gated hostname rollout are documented in [CABMATE.md](CABMATE.md). Existing deployment identifiers remain unchanged.
+Cabmate is served at `https://cabmate.kylescudder.co.uk`. Internal names
+(`ets2-data-dashboard` image, service and app directory) are unchanged, and
+`ets2.kylescudder.co.uk` still proxies to the same container so installed
+agents' ingest paths, `/healthz` and `/ws` keep working there. While old pages
+may still be open, `LEGACY_APP_ORIGIN=https://ets2.kylescudder.co.uk` keeps
+their origin checks passing.
 
 ETS2 follows the house deployment model in `deploy-core`: GitHub Actions builds
 and attests a multi-arch image for every commit on `main`, and Herman's
@@ -287,7 +292,7 @@ empty cab.
    `LEGACY_DATABASE_URL=postgres://… bun apps/web/server/export-legacy.ts /private/ets2-snapshot.json`
 2. For a fresh environment only, import into the **empty** `cabmate` database as the owner:
    `DATABASE_URL=postgres://cabmate_owner@…/cabmate bun run db:import /private/ets2-snapshot.json`
-   Existing production data is renamed in place per [CABMATE.md](CABMATE.md), never re-imported.
+   Production data was renamed in place to `cabmate`; never re-import it.
 
 UUIDs and agent API keys are preserved, so friends' installed agents keep
 working once their `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` is

@@ -2,7 +2,7 @@
 
 Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Public radio lives at `/radio`; driving and profile pages use invite-only Better Auth sign-in. The broadcaster remains independently deployed. See [the Cabmate rollout plan](deploy/CABMATE.md) for compatibility contracts and required production approvals.
+Public radio lives at `/radio`; driving and profile pages use invite-only Better Auth sign-in. The broadcaster remains independently deployed. Installed agents and ETS2 station entries depend on the ingest paths (`/api/ingest`, `/functions/v1/ingest`) and the plain-HTTP stream `http://radio-max-audio.kylescudder.co.uk/radio/main`; don't move, redirect or put authentication in front of them.
 
 Connect your gaming PC to see where your friends are driving, what they’re hauling,
 and how your journeys add up. Tune into RadioMax from the same app.
@@ -39,6 +39,8 @@ AGENT_API_KEY=<key> bun run simulate
 
 Checks: `bun run test` (needs a migrated database — uses `TEST_DATABASE_URL`
 or `DATABASE_URL`, and **truncates it**), `bun run typecheck`, `bun run build`.
+`bun run dev` has no `/ws`, so the dashboard polls instead; use `bun run build`
+and `bun run start` to exercise the live socket.
 
 `bun run test:db-budget` separately verifies the real query pool, LISTEN/reconnect,
 isolated health, one-shot work and the eight-slot runtime-role limit against
@@ -144,8 +146,11 @@ bun run radio:typecheck
 bun run radio:build
 ```
 
-See [repository consolidation](deploy/REPOSITORY-CONSOLIDATION.md) for preserved
-history, outstanding work and broadcaster release setup.
+`ci-radio.yml` checks the broadcaster and `release-radio.yml` publishes
+`ghcr.io/kylescudder/radio-max` and deploys it through the separate
+`radio-production` environment, gated by the `RADIO_RELEASE_ENABLED` and
+`RADIO_DEPLOY_ENABLED` repository variables. It never uses the web app's deploy
+credentials.
 
 ## Deployment
 
