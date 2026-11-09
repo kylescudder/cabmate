@@ -158,7 +158,7 @@ function SetPassword({ className }: { className?: string }) {
               {localization.settings.setPassword}
             </p>
 
-            <p className='text-muted-foreground mt-0.5 text-xs'>
+            <p className='mt-0.5 text-xs text-muted-foreground'>
               {localization.settings.setPasswordDescription}
             </p>
           </div>

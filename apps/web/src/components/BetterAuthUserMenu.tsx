@@ -11,7 +11,14 @@ export function BetterAuthUserMenu() {
         align='end'
         hideSettings
         className='ring-2 ring-edge hover:ring-accent'
-        links={[{ label: 'Profile', href: '/profile', icon: <UserRound />, visibility: 'authenticated' }]}
+        links={[
+          {
+            label: 'Profile',
+            href: '/profile',
+            icon: <UserRound />,
+            visibility: 'authenticated'
+          }
+        ]}
       />
     </BetterAuthUIProvider>
   )

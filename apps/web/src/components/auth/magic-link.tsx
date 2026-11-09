@@ -103,8 +103,8 @@ export function MagicLink({
       <CardHeader>
         <CardTitle className='text-xl'>Sign in to Cabmate</CardTitle>
         <CardDescription>
-          Enter your invited email and we’ll send you a sign-in link. On a phone,
-          open it in the same browser you’re using now.
+          Enter your invited email and we’ll send you a sign-in link. On a
+          phone, open it in the same browser you’re using now.
         </CardDescription>
       </CardHeader>
 
@@ -117,7 +117,7 @@ export function MagicLink({
               )}
 
               {showSeparator && (
-                <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card m-0 flex items-center text-xs'>
+                <FieldSeparator className='m-0 flex items-center text-xs *:data-[slot=field-separator-content]:bg-card'>
                   {localization.auth.or}
                 </FieldSeparator>
               )}
@@ -196,7 +196,7 @@ export function MagicLink({
           {socialPosition === 'bottom' && (
             <>
               {showSeparator && (
-                <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card flex items-center text-xs'>
+                <FieldSeparator className='flex items-center text-xs *:data-[slot=field-separator-content]:bg-card'>
                   {localization.auth.or}
                 </FieldSeparator>
               )}

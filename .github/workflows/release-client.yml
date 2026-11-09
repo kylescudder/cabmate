@@ -8,7 +8,7 @@ name: Release client
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
 
 jobs:

@@ -29,7 +29,12 @@ function Account() {
   useEffect(() => {
     if (session) clearPendingSignIn()
   }, [session])
-  if (!session) return <p role='status' className='text-slate-400'>Checking sign-in…</p>
+  if (!session)
+    return (
+      <p role='status' className='text-slate-400'>
+        Checking sign-in…
+      </p>
+    )
   async function signOut() {
     setSigningOut(true)
     setError('')
@@ -50,15 +55,25 @@ function Account() {
   return (
     <section aria-labelledby='account-heading' className='max-w-lg space-y-6'>
       <div>
-        <h2 id='account-heading' className='text-lg font-bold'>Sign-in and security</h2>
+        <h2 id='account-heading' className='text-lg font-bold'>
+          Sign-in and security
+        </h2>
         <p className='mt-1 text-sm text-slate-400'>
-          Signed in as <span className='text-slate-200'>{session.user.email}</span> (verified).
+          Signed in as{' '}
+          <span className='text-slate-200'>{session.user.email}</span>{' '}
+          (verified).
         </p>
       </div>
       <ChangePassword />
       <Passkeys />
-      <p className='text-sm text-slate-400'>Email codes remain available for recovery.</p>
-      {error && <p role='alert' className='text-sm text-red-400'>{error}</p>}
+      <p className='text-sm text-slate-400'>
+        Email codes remain available for recovery.
+      </p>
+      {error && (
+        <p role='alert' className='text-sm text-red-400'>
+          {error}
+        </p>
+      )}
       <button
         type='button'
         disabled={signingOut}

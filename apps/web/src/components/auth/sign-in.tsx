@@ -142,7 +142,9 @@ export function SignIn({
       <AuthPrompts view='signIn' />
       <ReauthenticationNotice />
       <CardHeader>
-        <CardTitle className='text-xl font-semibold'>Sign in to Cabmate</CardTitle>
+        <CardTitle className='text-xl font-semibold'>
+          Sign in to Cabmate
+        </CardTitle>
         <CardDescription>
           Use your password, an emailed code or link, or a saved passkey.
         </CardDescription>
@@ -157,7 +159,7 @@ export function SignIn({
               )}
 
               {showSeparator && (
-                <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card m-0 flex items-center text-xs'>
+                <FieldSeparator className='m-0 flex items-center text-xs *:data-[slot=field-separator-content]:bg-card'>
                   {localization.auth.or}
                 </FieldSeparator>
               )}
@@ -352,7 +354,7 @@ export function SignIn({
           {socialPosition === 'bottom' && (
             <>
               {showSeparator && (
-                <FieldSeparator className='*:data-[slot=field-separator-content]:bg-card flex items-center text-xs'>
+                <FieldSeparator className='flex items-center text-xs *:data-[slot=field-separator-content]:bg-card'>
                   {localization.auth.or}
                 </FieldSeparator>
               )}

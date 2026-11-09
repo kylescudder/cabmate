@@ -1,25 +1,59 @@
-import { readAuthEnv } from './env';
+import { readAuthEnv } from './env'
 
-const base = `http://127.0.0.1:${process.env.PORT || 3000}`;
+const base = `http://127.0.0.1:${process.env.PORT || 3000}`
 async function check(path: string, status: number, init?: RequestInit) {
-  const response = await fetch(base + path, { ...init, redirect: 'manual', signal: AbortSignal.timeout(10000) });
-  if (response.status !== status) throw new Error(`Acceptance failed for ${path}: ${response.status}`);
-  return response;
+  const response = await fetch(base + path, {
+    ...init,
+    redirect: 'manual',
+    signal: AbortSignal.timeout(10000)
+  })
+  if (response.status !== status)
+    throw new Error(`Acceptance failed for ${path}: ${response.status}`)
+  return response
 }
-const health = await check('/healthz', 200);
-if ((await health.json()).revision !== (process.env.ETS2_REVISION || 'development')) throw new Error('Revision mismatch');
+const health = await check('/healthz', 200)
+if (
+  (await health.json()).revision !==
+  (process.env.ETS2_REVISION || 'development')
+)
+  throw new Error('Revision mismatch')
 // Throws (setting names only) when the Better Auth settings are incomplete.
-readAuthEnv();
-if (!(await (await check('/auth/sign-in', 200)).text()).includes('Welcome to Cabmate')) throw new Error('Login page missing');
-if (!(await (await check('/radio', 200)).text()).includes('RadioMax')) throw new Error('Radio page missing');
-await check('/api/profile', 401);
-await check('/api/drivers', 401);
-await check('/ws', 401, { headers: { upgrade: 'websocket', connection: 'Upgrade', origin: process.env.APP_ORIGIN ?? '' } });
-await check('/api/ingest', 401, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
-await check('/functions/v1/ingest', 401, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+readAuthEnv()
+if (
+  !(await (await check('/auth/sign-in', 200)).text()).includes(
+    'Welcome to Cabmate'
+  )
+)
+  throw new Error('Login page missing')
+if (!(await (await check('/radio', 200)).text()).includes('RadioMax'))
+  throw new Error('Radio page missing')
+await check('/api/profile', 401)
+await check('/api/drivers', 401)
+await check('/ws', 401, {
+  headers: {
+    upgrade: 'websocket',
+    connection: 'Upgrade',
+    origin: process.env.APP_ORIGIN ?? ''
+  }
+})
+await check('/api/ingest', 401, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: '{}'
+})
+await check('/functions/v1/ingest', 401, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: '{}'
+})
 // Better Auth answers only the allowlisted endpoints; sign-up stays closed.
-await check('/api/auth/get-session', 200);
-await check('/api/auth/sign-up/email', 404, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
-if (!process.env.APP_ORIGIN) throw new Error('Production authentication configuration is missing');
-console.log('ETS2 acceptance checks passed');
-export {};
+await check('/api/auth/get-session', 200)
+await check('/api/auth/sign-up/email', 404, {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: '{}'
+})
+if (!process.env.APP_ORIGIN)
+  throw new Error('Production authentication configuration is missing')
+console.log('ETS2 acceptance checks passed')
+export {}

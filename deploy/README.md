@@ -24,11 +24,11 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 
 ## Files in this repo
 
-| File | Goes to |
-|---|---|
-| `compose.yaml` | `/Users/kyle/platform/apps/ets2-data-dashboard/compose.yaml` |
-| `deploy/hooks.py` | `deploy-core/app_hooks/ets2-data-dashboard/hooks.py` (tested service release) |
-| `deploy/registry-entry.json` | entry in `deploy-core/config/herman.json` and the installed `apps.json` (starts `enabled: false`) |
+| File                              | Goes to                                                                                                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `compose.yaml`                    | `/Users/kyle/platform/apps/ets2-data-dashboard/compose.yaml`                                                  |
+| `deploy/hooks.py`                 | `deploy-core/app_hooks/ets2-data-dashboard/hooks.py` (tested service release)                                 |
+| `deploy/registry-entry.json`      | entry in `deploy-core/config/herman.json` and the installed `apps.json` (starts `enabled: false`)             |
 | `deploy/compose.deploy-hook.yaml` | `/Users/kyle/platform/apps/ets2-data-dashboard/deploy/compose.deploy-hook.yaml` (queue-only webhook receiver) |
 
 ## One-time setup
@@ -49,6 +49,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    \c cabmate
    alter schema public owner to cabmate_owner;
    ```
+
 2. **App directory** `/Users/kyle/platform/apps/ets2-data-dashboard/` (mode 0700)
    containing `compose.yaml` and a protected `app.env` (0600, loaded through
    `env_file: app.env`):
@@ -69,6 +70,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    secret stable across releases, and keep it and the Brevo key out of Git,
    image layers and CI. Variables the app does not use are ignored. Changing
    `app.env` takes effect when the `web` container is recreated.
+
 3. **Routing**: point `ets2.kylescudder.co.uk` at the `ets2-data-dashboard`
    alias on `platform-web`, port 3000. Do not route the old Supabase host
    `api.ets2.kylescudder.co.uk`: it is a two-level subdomain, which Cloudflare's
@@ -189,14 +191,14 @@ maximum lifetime are intentionally disabled by the driver so LISTEN stays open.
 
 For **one web process**, the eight-slot `cabmate_runtime` role allowance is:
 
-| Consumer | Maximum connections |
-|---|---:|
-| Application queries (shared singleton) | 3 |
-| LISTEN (owned by that same Postgres.js client) | 1 |
-| `/healthz` (separate lazy singleton) | 1 |
-| One runtime CLI job: rollup **or** legacy import | 1 |
-| Operator headroom | 2 |
-| Total | 8 |
+| Consumer                                         | Maximum connections |
+| ------------------------------------------------ | ------------------: |
+| Application queries (shared singleton)           |                   3 |
+| LISTEN (owned by that same Postgres.js client)   |                   1 |
+| `/healthz` (separate lazy singleton)             |                   1 |
+| One runtime CLI job: rollup **or** legacy import |                   1 |
+| Operator headroom                                |                   2 |
+| Total                                            |                   8 |
 
 The application allowance is four **including** LISTEN. Query concurrency drops
 from four to three; excess work queues. This is the smallest change that allows
@@ -298,7 +300,7 @@ UUIDs and agent API keys are preserved, so friends' installed agents keep
 working once their `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` is
 changed from the old `https://api.ets2.kylescudder.co.uk/functions/v1/ingest` to
 `https://ets2.kylescudder.co.uk/api/ingest` (the path shown in the profile
-page's *Agent setup* snippet). The old `/functions/v1/ingest` path is still
+page's _Agent setup_ snippet). The old `/functions/v1/ingest` path is still
 served on the main hostname, so only the host has to change if you prefer.
 
 ## Retention

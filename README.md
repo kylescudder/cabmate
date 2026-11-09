@@ -63,10 +63,10 @@ a username and rotate the key. The agent sends that key as
 Drizzle schema in `apps/web/server/schema.ts`, migrations in `apps/web/drizzle/`
 (`bun run db:generate` after schema changes).
 
-* `users`, `vehicles`, `sessions`, `jobs`
-* `telemetry` — raw ~1 Hz samples, keyed by `(session_id, time)` so replayed
+- `users`, `vehicles`, `sessions`, `jobs`
+- `telemetry` — raw ~1 Hz samples, keyed by `(session_id, time)` so replayed
   batches are ignored
-* `telemetry_rollup_minute` — per-minute rollups of telemetry older than 14
+- `telemetry_rollup_minute` — per-minute rollups of telemetry older than 14
   days (`apps/web/server/rollup.ts`)
 
 ## Real client (Windows)
@@ -77,7 +77,7 @@ Proton, see [the next section](#real-client-linux--proton).
 
 1. Install scs-sdk-plugin into the ETS2/ATS `bin/win_x64/plugins/` folder.
 2. Sign in, open `/profile`, and copy the **config.json snippet** from the
-   *Agent setup* panel into `%USERPROFILE%\.ets2-tracker\config.json`:
+   _Agent setup_ panel into `%USERPROFILE%\.ets2-tracker\config.json`:
    ```json
    {
      "ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest",
@@ -106,7 +106,7 @@ exists inside Wine. A bridge such as
 [winecarte](https://github.com/srounce/winecarte) mirrors it to `/dev/shm`, and
 the Linux agent (`ets2-tracker`, from the same release) reads it from there.
 
-1. In Steam, *Properties → Compatibility → Select compatibility tool*: pick
+1. In Steam, _Properties → Compatibility → Select compatibility tool_: pick
    Proton Experimental or a numbered Proton (ETS2 also ships a native Linux
    build, which this path does not cover).
 2. Install scs-sdk-plugin into `bin/win_x64/plugins/` exactly as on Windows.

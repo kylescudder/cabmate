@@ -57,7 +57,7 @@ export function UserAvatar({
   return (
     <Avatar
       className={cn(
-        'bg-muted text-foreground size-8 rounded-full text-sm',
+        'size-8 rounded-full bg-muted text-sm text-foreground',
         className
       )}
     >

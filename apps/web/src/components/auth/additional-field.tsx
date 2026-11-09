@@ -536,7 +536,7 @@ function SliderField({
     <Field data-invalid={isInvalid}>
       <div className='flex items-center justify-between gap-2'>
         <FieldLabel htmlFor={name}>{field.label}</FieldLabel>
-        <span className='text-muted-foreground text-sm tabular-nums'>
+        <span className='text-sm text-muted-foreground tabular-nums'>
           {formatter.format(numericValue)}
         </span>
       </div>
@@ -672,7 +672,7 @@ function DateInput({
                 onChange(nextValue)
               }}
               disabled={isPending || field.readOnly}
-              className='bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
+              className='appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none'
             />
           </Field>
         )}
