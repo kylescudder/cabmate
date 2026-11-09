@@ -1,7 +1,7 @@
 import { radioState } from './radio'
 import { validAppOrigin } from './origin'
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import type { Database } from './db'
 import { MAX_MINUTE_KM, steps } from './distance'
