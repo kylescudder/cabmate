@@ -25,7 +25,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@cabmate/shared": "workspace:*",
-        "koffi": "^2.12.0",
+        "koffi": "^3.0.0",
       },
       "devDependencies": {
         "@types/node": "^22.9.0",
@@ -159,6 +159,12 @@
 
     "@better-fetch/fetch": ["@better-fetch/fetch@1.3.3", "", {}, "sha512-U6SlDt/GUWtK2JAxS/NhdoYTEim+EL1G5byz2TUj83KjLZBUpYzb5SmX0aXaCnbGkAjFKnV/o/0+cyXMbEcqqg=="],
 
+    "@cabmate/client": ["@cabmate/client@workspace:apps/client"],
+
+    "@cabmate/shared": ["@cabmate/shared@workspace:packages/shared"],
+
+    "@cabmate/web": ["@cabmate/web@workspace:apps/web"],
+
     "@date-fns/tz": ["@date-fns/tz@1.5.0", "", {}, "sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg=="],
 
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
@@ -238,12 +244,6 @@
     "@eslint/object-schema": ["@eslint/object-schema@2.1.7", "", {}, "sha512-VtAOaymWVfZcmZbp6E2mympDIHvyjXs/12LqWYjVw6qjrfF+VK+fyG33kChz3nnK+SU5/NeHOqrTEHS8sXO3OA=="],
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.4.1", "", { "dependencies": { "@eslint/core": "^0.17.0", "levn": "^0.4.1" } }, "sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA=="],
-
-    "@cabmate/client": ["@cabmate/client@workspace:apps/client"],
-
-    "@cabmate/shared": ["@cabmate/shared@workspace:packages/shared"],
-
-    "@cabmate/web": ["@cabmate/web@workspace:apps/web"],
 
     "@floating-ui/core": ["@floating-ui/core@1.8.0", "", { "dependencies": { "@floating-ui/utils": "^0.2.12" } }, "sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ=="],
 
@@ -328,6 +328,46 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.6.0", "", {}, "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
+
+    "@koromix/koffi-android-arm64": ["@koromix/koffi-android-arm64@3.3.7", "", { "os": "android", "cpu": "arm64" }, "sha512-330J8SnMF48DwADEbPYb5gAIM0mo3dZAsLUkuhyEPTPF49h73hRO7LMVXPkUmeXkK/J5Uvgsaem6Lx86Uev3GA=="],
+
+    "@koromix/koffi-android-x64": ["@koromix/koffi-android-x64@3.3.7", "", { "os": "android", "cpu": "x64" }, "sha512-CE1LEAsMyChQQNjGVDy56lBEdU70zOOD709mdKtxM6Rn2I7srT8Jyj66kSwnl4gO4+2BlTBXMyEIAEyYiNXNEA=="],
+
+    "@koromix/koffi-darwin-arm64": ["@koromix/koffi-darwin-arm64@3.3.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-xg1nqqhHRo6QxxYZJtYhhEGAbkHCQxvjoId3BCkhIJhRLi7+dDBRpLEi8x/5xrhqjCp+c/XhMrkAvxWy0NEYBg=="],
+
+    "@koromix/koffi-darwin-x64": ["@koromix/koffi-darwin-x64@3.3.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-8KeSrHrxzj+SEvaSMc1ufpgn66AdtorKGGb8HNJN5A435stXZ35oxg2+rsAyhTduvEZ9DkCuU94A0crA8KQ0UA=="],
+
+    "@koromix/koffi-freebsd-arm64": ["@koromix/koffi-freebsd-arm64@3.3.7", "", { "os": "freebsd", "cpu": "arm64" }, "sha512-UTo2xw46ctQdcz55I3b5pP1Gs0mGcYZLGAJg7MpEdr8ZEMmmclTzU/WUwWw/lyj5x2Ld2fscjCt69elqfrUBOQ=="],
+
+    "@koromix/koffi-freebsd-ia32": ["@koromix/koffi-freebsd-ia32@3.3.7", "", { "os": "freebsd", "cpu": "ia32" }, "sha512-5vgirS+XISQHzXiad3KYhZYGvuSbAtyrIm2etO118IjpWi87wbKP8xEdf8s4F+vU0HxGs9hcx5a+blwFMe9TFA=="],
+
+    "@koromix/koffi-freebsd-x64": ["@koromix/koffi-freebsd-x64@3.3.7", "", { "os": "freebsd", "cpu": "x64" }, "sha512-R2POCHtQ46cyhCFtYuq3Uo4MEiMstwLi49fwUgu6Vl38XvqKeje5up5e72LTCXf+ks/y3nua3TYM5oXTBqYAUA=="],
+
+    "@koromix/koffi-linux-arm": ["@koromix/koffi-linux-arm@3.3.7", "", { "os": "linux", "cpu": "arm" }, "sha512-zUb+N1CvsRikXKs93jNdHTAVFt3Njr7ShIA8QwOh2IH/8aV8bkQnkt7AOJvOK/uP0CHd7bxn82YgGUAcZW/pVw=="],
+
+    "@koromix/koffi-linux-arm64": ["@koromix/koffi-linux-arm64@3.3.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-7ttM8GE2gowelTTyTY0+t79rWaoilZMmW4MYgrIXx5NNShLiHtUNfyGGaNzCd1MD+j+bnNZLJ2lh3lkBS9stfw=="],
+
+    "@koromix/koffi-linux-ia32": ["@koromix/koffi-linux-ia32@3.3.7", "", { "os": "linux", "cpu": "ia32" }, "sha512-hM6CtBgyWGkYzXIl+ciCWSCWnYh/6ft2FRi17aw345lK3Syl2OH06PPMxMd+AHkNrnYWT3nyrzl2Rcun9IeAiw=="],
+
+    "@koromix/koffi-linux-loong64": ["@koromix/koffi-linux-loong64@3.3.7", "", { "os": "linux", "cpu": "none" }, "sha512-plmvZGrC2F02AIDNx3+QcjU39Y9XVgHAHMOM17HJCmxc3f5VpKO0d7aln3/Re6TchBW1h2ldFgI6pp/7vN7IQQ=="],
+
+    "@koromix/koffi-linux-ppc64": ["@koromix/koffi-linux-ppc64@3.3.7", "", { "os": "linux", "cpu": "ppc64" }, "sha512-bmVe2k1v7tiOGcuX22+HIyOT39bRBrIJd2v6qzSN9Er/f7XI61cbJUnFYWdXpYecU2Ww1LDSkgIifcRyfpipqw=="],
+
+    "@koromix/koffi-linux-riscv64": ["@koromix/koffi-linux-riscv64@3.3.7", "", { "os": "linux", "cpu": "none" }, "sha512-IG1cp7agL1Od03NrKy8B0UGHomco0sygtWhWIXTTbjkJZkjE9Ic79IWzA5d16XbVtob+247XYBDcaeJJ644Xiw=="],
+
+    "@koromix/koffi-linux-x64": ["@koromix/koffi-linux-x64@3.3.7", "", { "os": "linux", "cpu": "x64" }, "sha512-1cxuG2zsO71wB3RwYt6AjJD9xQW0lUVw4TX4e3Q2DeffEqrVtE3g4IbQsnijTcSeZmmec1kDuuk4CSHUfhAEJQ=="],
+
+    "@koromix/koffi-openbsd-arm64": ["@koromix/koffi-openbsd-arm64@3.3.7", "", { "os": "openbsd", "cpu": "arm64" }, "sha512-8qqafiMgdmOTEeZsLSnuKdg82Id8IwcxG8MowVtk0zJ4iNObmg2Ygd1dTtWRwpMBW0gfXoodwRdRqnUur3R/aA=="],
+
+    "@koromix/koffi-openbsd-ia32": ["@koromix/koffi-openbsd-ia32@3.3.7", "", { "os": "openbsd", "cpu": "ia32" }, "sha512-ZG06vAX5YUyUGAg9brg4maex7uGj1fybhlMrWt5FlocMBlrY05pn84vlCKavHsCficecAVq7yEzU8f+4FC2T7A=="],
+
+    "@koromix/koffi-openbsd-x64": ["@koromix/koffi-openbsd-x64@3.3.7", "", { "os": "openbsd", "cpu": "x64" }, "sha512-jnBD84VCXRmOeJniInO8g5xH2XwVnifp2w35+UbAx8coMIS99YAW9uDNg/U7ooJIyL9hfbatfeNkjNhYhhNpKw=="],
+
+    "@koromix/koffi-win32-arm64": ["@koromix/koffi-win32-arm64@3.3.7", "", { "os": "win32", "cpu": "arm64" }, "sha512-Sal267u6Mi+UK/Lbu5vECQDtvZCfK57BO1zmc+Tar7Kdy+hHZ8Eqx7SyxTP6js4ofavQ83pVp1SWQqK8XJVpcg=="],
+
+    "@koromix/koffi-win32-ia32": ["@koromix/koffi-win32-ia32@3.3.7", "", { "os": "win32", "cpu": "ia32" }, "sha512-kOPimggBxcLjHM/rHOWZp8fyxu+UjeEkWM26Gb9XCnirmM76xDu+GXCSDoBPPqF8s+XkY3NrhUdgfIXcwmWiPA=="],
+
+    "@koromix/koffi-win32-x64": ["@koromix/koffi-win32-x64@3.3.7", "", { "os": "win32", "cpu": "x64" }, "sha512-yVrh4Yzyjm+fH7CGIa8Ts+DSGeU8QrwEtECXxNswh3i86hwZTOKkqojaDFAYJov0B3w4BFcjR4TOKkPOB0ZpZA=="],
 
     "@levischuck/tiny-cbor": ["@levischuck/tiny-cbor@0.2.11", "", {}, "sha512-llBRm4dT4Z89aRsm6u2oEZ8tfwL/2l6BwpZ7JcyieouniDECM5AqNgr/y08zalEIvW3RSK4upYyybDcmjXqAow=="],
 
@@ -851,7 +891,7 @@
 
     "keyv": ["keyv@4.5.4", "", { "dependencies": { "json-buffer": "3.0.1" } }, "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw=="],
 
-    "koffi": ["koffi@2.16.3", "", {}, "sha512-E9y1AsgYGlaxMhcZzHr8y96QF2U5XzA12GGVAfbWqIubTwPNMXQarfBzePNXHe0xtIEtNd6ifAv3GAKYGUeBAQ=="],
+    "koffi": ["koffi@3.3.7", "", { "optionalDependencies": { "@koromix/koffi-android-arm64": "3.3.7", "@koromix/koffi-android-x64": "3.3.7", "@koromix/koffi-darwin-arm64": "3.3.7", "@koromix/koffi-darwin-x64": "3.3.7", "@koromix/koffi-freebsd-arm64": "3.3.7", "@koromix/koffi-freebsd-ia32": "3.3.7", "@koromix/koffi-freebsd-x64": "3.3.7", "@koromix/koffi-linux-arm": "3.3.7", "@koromix/koffi-linux-arm64": "3.3.7", "@koromix/koffi-linux-ia32": "3.3.7", "@koromix/koffi-linux-loong64": "3.3.7", "@koromix/koffi-linux-ppc64": "3.3.7", "@koromix/koffi-linux-riscv64": "3.3.7", "@koromix/koffi-linux-x64": "3.3.7", "@koromix/koffi-openbsd-arm64": "3.3.7", "@koromix/koffi-openbsd-ia32": "3.3.7", "@koromix/koffi-openbsd-x64": "3.3.7", "@koromix/koffi-win32-arm64": "3.3.7", "@koromix/koffi-win32-ia32": "3.3.7", "@koromix/koffi-win32-x64": "3.3.7" }, "hasInstallScript": true }, "sha512-Vrq4UwAE19HPLMou8m7HGCELiTE3l9D+r1nA7XwVHUTNaRdymPM+kzkkD2VGxlyjI2qZTb9tMDaFn7kfZ72v3Q=="],
 
     "kysely": ["kysely@0.29.8", "", {}, "sha512-ixHU1H4R+LeC5Y0nAhYgiGRFpFRHm2DXKEmJSs/vbes9sKXyssyzxzE/NYiOJX5fY0BL28biCre3GqlCqUwyXQ=="],
 
