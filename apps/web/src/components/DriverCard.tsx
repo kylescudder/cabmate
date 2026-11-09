@@ -25,7 +25,6 @@ export function DriverCard({ d }: { d: DriverRow }) {
     >
       <div className='mb-3 flex items-center gap-3'>
         {d.avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={d.avatarUrl}
             alt=''

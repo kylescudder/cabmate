@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-;('use client')
 
 import { useLiveDrivers } from '../lib/useLiveDrivers'
 import { DriverCard } from '../components/DriverCard'
