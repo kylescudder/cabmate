@@ -14,6 +14,14 @@
     "types": ["vite/client", "bun"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "server/**/*.ts", "client/**/*.ts", "../../tests/database/**/*.ts", "vite.config.ts", "drizzle.config.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "server/**/*.ts",
+    "client/**/*.ts",
+    "../../tests/database/**/*.ts",
+    "vite.config.ts",
+    "drizzle.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

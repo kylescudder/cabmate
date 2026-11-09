@@ -142,7 +142,9 @@ export function SignIn({
       <AuthPrompts view='signIn' />
       <ReauthenticationNotice />
       <CardHeader>
-        <CardTitle className='text-xl font-semibold'>Sign in to Cabmate</CardTitle>
+        <CardTitle className='text-xl font-semibold'>
+          Sign in to Cabmate
+        </CardTitle>
         <CardDescription>
           Use your password, an emailed code or link, or a saved passkey.
         </CardDescription>

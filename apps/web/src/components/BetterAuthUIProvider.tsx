@@ -11,7 +11,13 @@ import { profileAvatar } from '@/lib/profile-ui'
 
 // Every navigation the auth UI makes goes through safeAppPath, so a crafted
 // `?redirectTo=` can never leave Cabmate.
-export function BetterAuthUIProvider({ children, redirectTo = appHome }: { children: ReactNode; redirectTo?: string }) {
+export function BetterAuthUIProvider({
+  children,
+  redirectTo = appHome
+}: {
+  children: ReactNode
+  redirectTo?: string
+}) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   return (

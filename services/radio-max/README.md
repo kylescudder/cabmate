@@ -3,8 +3,8 @@
 This service is maintained in [`kylescudder/cabmate`](https://github.com/kylescudder/cabmate)
 under `services/radio-max`. Run the commands below from this directory. It has
 its own Bun workspace and lockfile so the web app and broadcaster can build and
-release independently. See [repository consolidation](../../deploy/REPOSITORY-CONSOLIDATION.md)
-for release setup and the outstanding ingress change.
+release independently. CI and releases run from the repository root; see the
+[root README](../../README.md#broadcaster-development).
 
 # radio-max
 

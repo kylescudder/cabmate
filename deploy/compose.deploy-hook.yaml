@@ -10,7 +10,7 @@ services:
   deploy-hook:
     image: ${DEPLOY_RECEIVER_IMAGE:?set DEPLOY_RECEIVER_IMAGE to the verified local receiver image ID}
     pull_policy: never
-    command: ["/opt/deploy-receivers/ets2-data-dashboard/server.mjs"]
+    command: ['/opt/deploy-receivers/ets2-data-dashboard/server.mjs']
     restart: unless-stopped
     user: '${DEPLOY_HOOK_USER:?set DEPLOY_HOOK_USER to the queue owner uid:gid}'
     environment:

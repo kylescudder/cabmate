@@ -103,8 +103,8 @@ export function MagicLink({
       <CardHeader>
         <CardTitle className='text-xl'>Sign in to Cabmate</CardTitle>
         <CardDescription>
-          Enter your invited email and we’ll send you a sign-in link. On a phone,
-          open it in the same browser you’re using now.
+          Enter your invited email and we’ll send you a sign-in link. On a
+          phone, open it in the same browser you’re using now.
         </CardDescription>
       </CardHeader>
 

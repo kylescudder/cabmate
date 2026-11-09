@@ -7,13 +7,18 @@ export const profileAvatar = {
   enabled: true,
   size: 512,
   extension: 'jpg' as const,
-  resize: async (file: File) => new File([await prepareAvatar(file)], 'avatar.jpg', { type: 'image/jpeg' }),
+  resize: async (file: File) =>
+    new File([await prepareAvatar(file)], 'avatar.jpg', { type: 'image/jpeg' }),
   upload: async (file: File) => {
-    const image = await avatarRequest({ method: 'PUT', headers: { 'Content-Type': 'image/jpeg' }, body: file })
+    const image = await avatarRequest({
+      method: 'PUT',
+      headers: { 'Content-Type': 'image/jpeg' },
+      body: file
+    })
     if (!image) throw new Error('The photo could not be uploaded.')
     return image
   },
   delete: async () => {
     await avatarRequest({ method: 'DELETE' })
-  },
+  }
 }

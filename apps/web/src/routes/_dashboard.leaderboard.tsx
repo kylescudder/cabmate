@@ -1,3 +1,10 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { LeaderboardLive } from '../components/LeaderboardLive';
-export const Route = createFileRoute('/_dashboard/leaderboard')({ component: () => <div><h1 className="text-2xl font-bold mb-6">On the road</h1><LeaderboardLive /></div> });
+import { createFileRoute } from '@tanstack/react-router'
+import { LeaderboardLive } from '../components/LeaderboardLive'
+export const Route = createFileRoute('/_dashboard/leaderboard')({
+  component: () => (
+    <div>
+      <h1 className='mb-6 text-2xl font-bold'>On the road</h1>
+      <LeaderboardLive />
+    </div>
+  )
+})
