@@ -45,7 +45,7 @@
     "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.0",
     "typescript-eslint": "8.72.0"
   },
   "lint-staged": {
