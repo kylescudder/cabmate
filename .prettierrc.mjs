@@ -6,7 +6,6 @@ const config = {
   singleQuote: true,
   jsxSingleQuote: true,
   tailwindPreserveWhitespace: true,
-  tailwindStylesheet: './apps/web/src/globals.css',
   plugins: ['prettier-plugin-tailwindcss']
 }
 
