@@ -14,7 +14,7 @@ async function check(path: string, status: number, init?: RequestInit) {
 const health = await check('/healthz', 200)
 if (
   (await health.json()).revision !==
-  (process.env.ETS2_REVISION || 'development')
+  (process.env.CABMATE_REVISION || 'development')
 )
   throw new Error('Revision mismatch')
 // Throws (setting names only) when the Better Auth settings are incomplete.
@@ -41,11 +41,6 @@ await check('/api/ingest', 401, {
   headers: { 'content-type': 'application/json' },
   body: '{}'
 })
-await check('/functions/v1/ingest', 401, {
-  method: 'POST',
-  headers: { 'content-type': 'application/json' },
-  body: '{}'
-})
 // Better Auth answers only the allowlisted endpoints; sign-up stays closed.
 await check('/api/auth/get-session', 200)
 await check('/api/auth/sign-up/email', 404, {
@@ -55,5 +50,5 @@ await check('/api/auth/sign-up/email', 404, {
 })
 if (!process.env.APP_ORIGIN)
   throw new Error('Production authentication configuration is missing')
-console.log('ETS2 acceptance checks passed')
+console.log('Cabmate acceptance checks passed')
 export {}

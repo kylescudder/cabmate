@@ -8,9 +8,6 @@ dist/
 .DS_Store
 .vscode/
 .idea/
-supabase/.branches/
-supabase/.temp/
-supabase/snippets/
 *.tsbuildinfo
 
 # Self-host runtime state — these scripts run on the prod box and may write

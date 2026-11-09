@@ -1,11 +1,11 @@
 import { randomBytes } from 'node:crypto'
 import { and, eq, sql } from 'drizzle-orm'
-import { IngestPayload } from '@ets2/shared'
+import { IngestPayload } from '@cabmate/shared'
 import type { Database } from './db'
 import { jobs, sessions, telemetry, users, vehicles } from './schema'
 
 // Delivered on commit; every app instance LISTENs and pushes fresh driver state to its sockets.
-export const LIVE_CHANNEL = 'ets2_telemetry'
+export const LIVE_CHANNEL = 'cabmate_telemetry'
 export function newApiKey() {
   return randomBytes(24).toString('hex')
 }

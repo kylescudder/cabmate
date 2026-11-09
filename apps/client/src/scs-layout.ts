@@ -1,4 +1,4 @@
-import type { ActiveJob, TelemetrySample } from '@ets2/shared'
+import type { ActiveJob, TelemetrySample } from '@cabmate/shared'
 
 // Offsets into the scs-sdk-plugin SCSTelemetry shared memory block.
 // Layout is documented in scs-telemetry/inc/scs-telemetry-common.hpp on the

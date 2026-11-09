@@ -1,14 +1,11 @@
-// Explicit origins only: the legacy host is retained briefly for open pages/sockets.
-export function appOrigins(fallback: string): string[] {
-  return [
-    process.env.APP_ORIGIN || fallback,
-    process.env.LEGACY_APP_ORIGIN
-  ].filter((value): value is string => Boolean(value))
+// Explicit origin only: browser requests must come from the app's own origin.
+export function appOrigin(fallback: string): string {
+  return process.env.APP_ORIGIN || fallback
 }
 
 export function validAppOrigin(
   request: Request,
   fallback = new URL(request.url).origin
 ): boolean {
-  return appOrigins(fallback).includes(request.headers.get('origin') || '')
+  return request.headers.get('origin') === appOrigin(fallback)
 }

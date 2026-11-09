@@ -42,7 +42,7 @@ async function drive(
   }))
   for (let i = 0; i < samples.length; i += 200) {
     const response = await anonymous(
-      new Request('http://ets2.test/api/ingest', {
+      new Request('http://cabmate.test/api/ingest', {
         method: 'POST',
         headers: {
           authorization: `Bearer ${apiKey}`,
@@ -61,7 +61,9 @@ async function drive(
   return 200
 }
 const get = async <T>(path: string) =>
-  (await signedIn(new Request(`http://ets2.test${path}`))).json() as Promise<T>
+  (
+    await signedIn(new Request(`http://cabmate.test${path}`))
+  ).json() as Promise<T>
 
 beforeAll(async () => {
   await db.execute(

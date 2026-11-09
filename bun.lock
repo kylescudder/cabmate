@@ -21,10 +21,10 @@
       },
     },
     "apps/client": {
-      "name": "@ets2/client",
+      "name": "@cabmate/client",
       "version": "0.0.1",
       "dependencies": {
-        "@ets2/shared": "workspace:*",
+        "@cabmate/shared": "workspace:*",
         "koffi": "^2.12.0",
       },
       "devDependencies": {
@@ -33,7 +33,7 @@
       },
     },
     "apps/web": {
-      "name": "@ets2/web",
+      "name": "@cabmate/web",
       "version": "0.0.1",
       "dependencies": {
         "@base-ui/react": "1.9.0",
@@ -41,7 +41,7 @@
         "@better-auth-ui/react": "1.7.33",
         "@better-auth/drizzle-adapter": "1.7.18",
         "@better-auth/passkey": "1.7.18",
-        "@ets2/shared": "workspace:*",
+        "@cabmate/shared": "workspace:*",
         "@t3-oss/env-core": "0.13.11",
         "@tanstack/react-form": "1.33.5",
         "@tanstack/react-query": "^5.90.21",
@@ -85,7 +85,7 @@
       },
     },
     "packages/shared": {
-      "name": "@ets2/shared",
+      "name": "@cabmate/shared",
       "version": "0.0.1",
       "dependencies": {
         "zod": "4.6.7",
@@ -239,11 +239,11 @@
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.4.1", "", { "dependencies": { "@eslint/core": "^0.17.0", "levn": "^0.4.1" } }, "sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA=="],
 
-    "@ets2/client": ["@ets2/client@workspace:apps/client"],
+    "@cabmate/client": ["@cabmate/client@workspace:apps/client"],
 
-    "@ets2/shared": ["@ets2/shared@workspace:packages/shared"],
+    "@cabmate/shared": ["@cabmate/shared@workspace:packages/shared"],
 
-    "@ets2/web": ["@ets2/web@workspace:apps/web"],
+    "@cabmate/web": ["@cabmate/web@workspace:apps/web"],
 
     "@floating-ui/core": ["@floating-ui/core@1.8.0", "", { "dependencies": { "@floating-ui/utils": "^0.2.12" } }, "sha512-0CIZ5itps/8x7BG8dEIhs53BvCUH2PCoogtakwRTut+Arm58sJooJ0AuZhLw2HJYIR5cMLNPBSS728sPho2khQ=="],
 

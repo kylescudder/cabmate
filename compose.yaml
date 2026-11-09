@@ -1,7 +1,7 @@
-name: ets2-data-dashboard
+name: cabmate
 services:
   web:
-    image: ${ETS2_IMAGE:?Set the verified immutable release image digest}
+    image: ${CABMATE_IMAGE:?Set the verified immutable release image digest}
     user: '501:20'
     init: true
     restart: unless-stopped
@@ -22,7 +22,7 @@ services:
     secrets: [database_password]
     networks:
       platform-web:
-        aliases: [ets2-data-dashboard]
+        aliases: [cabmate]
       platform-db: {}
     logging:
       driver: json-file

@@ -44,7 +44,7 @@ const sessionId = randomUUID()
 const start = Date.now() - 10_000
 function post(odometerKm: number, second: number) {
   return ingest(
-    new Request('http://ets2.test/api/ingest', {
+    new Request('http://cabmate.test/api/ingest', {
       method: 'POST',
       headers: {
         authorization: 'Bearer key-live',
@@ -111,11 +111,11 @@ describe('live driver socket', () => {
 
   test('handshakes from another origin are refused', async () => {
     const saved = process.env.APP_ORIGIN
-    process.env.APP_ORIGIN = 'https://ets2.test'
+    process.env.APP_ORIGIN = 'https://cabmate.test'
     try {
       expect(
         await authorizeSocket(
-          new Request('https://ets2.test/ws', {
+          new Request('https://cabmate.test/ws', {
             headers: { origin: 'https://evil.example' }
           })
         )

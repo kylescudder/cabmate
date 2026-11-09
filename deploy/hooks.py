@@ -1,4 +1,4 @@
-"""Install under deploy-core/app_hooks/ets2-data-dashboard/hooks.py in a tested service release."""
+"""Install under deploy-core/app_hooks/cabmate/hooks.py in a tested service release."""
 import deploy_core as core
 
 

@@ -2,7 +2,7 @@
 
 Your ETS2 companion: friends on the map, your drives, and RadioMax along for the ride.
 
-Public radio lives at `/radio`; driving and profile pages use invite-only Better Auth sign-in. The broadcaster remains independently deployed. Installed agents and ETS2 station entries depend on the ingest paths (`/api/ingest`, `/functions/v1/ingest`) and the plain-HTTP stream `http://radio-max-audio.kylescudder.co.uk/radio/main`; don't move, redirect or put authentication in front of them.
+Public radio lives at `/radio`; driving and profile pages use invite-only Better Auth sign-in. The broadcaster remains independently deployed. Installed agents and ETS2 station entries depend on the ingest path `/api/ingest` and the plain-HTTP stream `http://radio-max-audio.kylescudder.co.uk/radio/main`; don't move, redirect or put authentication in front of them.
 
 Connect your gaming PC to see where your friends are driving, what they’re hauling,
 and how your journeys add up. Tune into RadioMax from the same app.
@@ -77,7 +77,7 @@ Proton, see [the next section](#real-client-linux--proton).
 
 1. Install scs-sdk-plugin into the ETS2/ATS `bin/win_x64/plugins/` folder.
 2. Sign in, open `/profile`, and copy the **config.json snippet** from the
-   _Agent setup_ panel into `%USERPROFILE%\.ets2-tracker\config.json`:
+   _Agent setup_ panel into `%USERPROFILE%\.cabmate\config.json`:
    ```json
    {
      "ingestUrl": "https://cabmate.kylescudder.co.uk/api/ingest",
@@ -86,36 +86,25 @@ Proton, see [the next section](#real-client-linux--proton).
    ```
 3. Start the game, then `bun dev:client`. The agent samples at 1 Hz, batches
    every second, and persists failed batches under
-   `%USERPROFILE%\.ets2-tracker\pending\` for replay.
-
-### Already set up on the old version?
-
-Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
-
-```json
-"ingestUrl": "https://cabmate.kylescudder.co.uk/api/ingest"
-```
-
-Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard
-again with the email address you were invited with.
+   `%USERPROFILE%\.cabmate\pending\` for replay.
 
 ## Real client (Linux + Proton)
 
 Under Proton the game is the Windows build, so the plugin's shared memory only
 exists inside Wine. A bridge such as
 [winecarte](https://github.com/srounce/winecarte) mirrors it to `/dev/shm`, and
-the Linux agent (`ets2-tracker`, from the same release) reads it from there.
+the Linux agent (`cabmate-agent`, from the same release) reads it from there.
 
 1. In Steam, _Properties → Compatibility → Select compatibility tool_: pick
    Proton Experimental or a numbered Proton (ETS2 also ships a native Linux
    build, which this path does not cover).
 2. Install scs-sdk-plugin into `bin/win_x64/plugins/` exactly as on Windows.
 3. Install winecarte into `~/.local/bin/`.
-4. Put `ets2-tracker` and `config.json` (same snippet as above) in
-   `~/.ets2-tracker/`, then `chmod +x ~/.ets2-tracker/ets2-tracker`.
+4. Put `cabmate-agent` and `config.json` (same snippet as above) in
+   `~/.cabmate/`, then `chmod +x ~/.cabmate/cabmate-agent`.
 5. Set the launch options to:
    ```
-   ~/.ets2-tracker/ets2-tracker ~/.local/bin/winecarte-run %command% -developer -console
+   ~/.cabmate/cabmate-agent ~/.local/bin/winecarte-run %command% -developer -console
    ```
    The agent starts the game through winecarte and exits when it does. Keep the
    full path: Steam started from the desktop often lacks the `PATH` your terminal

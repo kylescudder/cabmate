@@ -4,7 +4,7 @@ import {
   useQueryClient,
   type QueryClient
 } from '@tanstack/react-query'
-import type { ActiveJob, TelemetrySample } from '@ets2/shared'
+import type { ActiveJob, TelemetrySample } from '@cabmate/shared'
 import { api } from './api'
 
 export interface DriverRow {

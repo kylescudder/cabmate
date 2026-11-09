@@ -1,5 +1,5 @@
 {
-  "name": "@ets2/shared",
+  "name": "@cabmate/shared",
   "version": "0.0.1",
   "private": true,
   "type": "module",

@@ -6,7 +6,7 @@ import {
   writeFileSync
 } from 'node:fs'
 import { join } from 'node:path'
-import type { IngestPayload } from '@ets2/shared'
+import type { IngestPayload } from '@cabmate/shared'
 
 // On-disk fallback queue: each unsent batch is one file under <configDir>/pending.
 // We replay them on startup and on every successful POST. The api key is stored

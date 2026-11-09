@@ -18,7 +18,7 @@ const UnitsCtx = createContext<UnitsContextValue>({
   setUnits: () => {}
 })
 
-const STORAGE_KEY = 'ets2-tracker-units'
+const STORAGE_KEY = 'cabmate-agent-units'
 
 export function UnitsProvider({ children }: { children: ReactNode }) {
   // Default to metric until we've hydrated from localStorage — avoids the SSR

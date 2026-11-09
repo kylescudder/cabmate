@@ -5,7 +5,7 @@ import type {
   IngestPayload,
   TelemetrySample,
   Truck
-} from '@ets2/shared'
+} from '@cabmate/shared'
 import { loadConfig } from './config.js'
 import { BatchBuffer, type PendingBatch } from './buffer.js'
 import type { TelemetryMap } from './telemetry-map.js'
@@ -19,7 +19,7 @@ const FLUSH_INTERVAL_MS = 1000
 
 if (process.platform !== 'win32' && process.platform !== 'linux') {
   console.error(
-    'ets2-client runs on Windows, or on Linux with the game under Steam Proton.'
+    'cabmate-agent runs on Windows, or on Linux with the game under Steam Proton.'
   )
   process.exit(1)
 }
@@ -44,13 +44,13 @@ let lastJob: ActiveJob | null = null
 let warnedNotRunning = false
 
 // Steam launch-option wrapper mode: when invoked as
-//   ets2-tracker.exe <game-exe> [game-args...]
-// (which is what `"...\ets2-tracker.exe" %command% -developer -console` expands
+//   cabmate-agent.exe <game-exe> [game-args...]
+// (which is what `"...\cabmate-agent.exe" %command% -developer -console` expands
 // to), spawn the game as a child process, keep sampling in parallel, and exit
 // when the game exits. With no args we run as a standalone agent — same as
 // double-clicking the .exe.
 //
-// On Linux, `ets2-tracker %command%` expands to Steam's reaper/Proton command
+// On Linux, `cabmate-agent %command%` expands to Steam's reaper/Proton command
 // line rather than a game .exe, so any arguments at all mean "launch this".
 //
 // slice(2) because compiled bun binaries follow Node's argv layout:
@@ -181,7 +181,7 @@ process.on('SIGINT', shutdown)
 // Steam stops launch-option wrappers with SIGTERM on Linux.
 process.on('SIGTERM', shutdown)
 
-console.log(`ets2-client → ${config.ingestUrl} (session ${sessionId})`)
+console.log(`cabmate-agent → ${config.ingestUrl} (session ${sessionId})`)
 tryOpenMap()
 flushPending().catch(() => {})
 setInterval(sample, SAMPLE_INTERVAL_MS)
