@@ -80,7 +80,7 @@ Proton, see [the next section](#real-client-linux--proton).
    _Agent setup_ panel into `%USERPROFILE%\.ets2-tracker\config.json`:
    ```json
    {
-     "ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest",
+     "ingestUrl": "https://cabmate.kylescudder.co.uk/api/ingest",
      "apiKey": "<48 hex chars from your profile>"
    }
    ```
@@ -93,7 +93,7 @@ Proton, see [the next section](#real-client-linux--proton).
 Change `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` to:
 
 ```json
-"ingestUrl": "https://ets2.kylescudder.co.uk/api/ingest"
+"ingestUrl": "https://cabmate.kylescudder.co.uk/api/ingest"
 ```
 
 Keep your existing `apiKey`, then restart the agent. Sign in to the dashboard

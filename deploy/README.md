@@ -55,7 +55,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    `env_file: app.env`):
 
    ```dotenv
-   APP_ORIGIN=https://ets2.kylescudder.co.uk
+   APP_ORIGIN=https://cabmate.kylescudder.co.uk
    BETTER_AUTH_URL=<same value as APP_ORIGIN, https in production>
    BETTER_AUTH_SECRET=<stable, cryptographically random, at least 32 characters>
    BREVO_API_KEY=<Cabmate transactional API key>
@@ -71,8 +71,9 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    image layers and CI. Variables the app does not use are ignored. Changing
    `app.env` takes effect when the `web` container is recreated.
 
-3. **Routing**: point `ets2.kylescudder.co.uk` at the `ets2-data-dashboard`
-   alias on `platform-web`, port 3000. Do not route the old Supabase host
+3. **Routing**: point `cabmate.kylescudder.co.uk`, and `ets2.kylescudder.co.uk`
+   for installed agents, at the `ets2-data-dashboard` alias on `platform-web`,
+   port 3000. Do not route the old Supabase host
    `api.ets2.kylescudder.co.uk`: it is a two-level subdomain, which Cloudflare's
    Universal SSL does not cover, so it cannot serve TLS. Already-installed
    agents must have `ingestUrl` changed to the main hostname (see below).
@@ -273,7 +274,7 @@ database) writes it to `deploy-spool/requests`; deploy-core then verifies the at
 publishes `state/public/deployment.json`, which the workflow polls until the host reports that exact image and
 the site serves the commit in `X-ETS2-Revision`. The job runs in the main-only `production` environment
 (`CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, `DEPLOY_WEBHOOK_SECRET`) and only when the repository variable
-`DEPLOY_ENABLED` is `true`. `ETS2_BASE_URL` is `https://ets2.kylescudder.co.uk`.
+`DEPLOY_ENABLED` is `true`. `ETS2_BASE_URL` is `https://cabmate.kylescudder.co.uk`.
 
 A deploy can also be driven manually:
 
@@ -299,7 +300,7 @@ empty cab.
 UUIDs and agent API keys are preserved, so friends' installed agents keep
 working once their `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` is
 changed from the old `https://api.ets2.kylescudder.co.uk/functions/v1/ingest` to
-`https://ets2.kylescudder.co.uk/api/ingest` (the path shown in the profile
+`https://cabmate.kylescudder.co.uk/api/ingest` (the URL shown in the profile
 page's _Agent setup_ snippet). The old `/functions/v1/ingest` path is still
 served on the main hostname, so only the host has to change if you prefer.
 
