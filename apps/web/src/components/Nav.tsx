@@ -12,7 +12,7 @@ function Account() {
   return (
     <div className='nav-account'>
       <Suspense
-        fallback={<span className='block size-8 rounded-full bg-edge' />}
+        fallback={<span className='bg-edge block size-8 rounded-full' />}
       >
         <BetterAuthUserMenu />
       </Suspense>

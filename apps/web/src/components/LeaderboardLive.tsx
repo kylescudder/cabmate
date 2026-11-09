@@ -24,7 +24,7 @@ export function LeaderboardLive({
   })
 
   return (
-    <div className='overflow-hidden rounded-lg border border-edge bg-panel'>
+    <div className='border-edge bg-panel overflow-hidden rounded-lg border'>
       <table className='w-full'>
         <thead className='bg-edge/40 text-xs text-slate-400 uppercase'>
           <tr>
@@ -36,7 +36,7 @@ export function LeaderboardLive({
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={r.id} className='border-t border-edge'>
+            <tr key={r.id} className='border-edge border-t'>
               <td className='px-4 py-3 font-mono text-slate-500'>{i + 1}</td>
               <td className='px-4 py-3'>
                 <Link

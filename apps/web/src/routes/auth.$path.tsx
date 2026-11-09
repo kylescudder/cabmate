@@ -29,7 +29,7 @@ function AuthPage() {
         <BetterAuthUIProvider>
           <Auth path={path} className='w-full text-left' />
         </BetterAuthUIProvider>
-        <Link to='/radio' className='text-center text-accent underline'>
+        <Link to='/radio' className='text-accent text-center underline'>
           Visit RadioMax without signing in
         </Link>
       </main>

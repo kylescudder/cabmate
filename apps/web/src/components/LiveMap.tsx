@@ -155,7 +155,7 @@ export function LiveMap() {
         })}
       </MapContainer>
 
-      <div className='absolute top-3 right-3 z-[1000] flex gap-3 rounded border border-edge bg-panel/90 px-3 py-1.5 text-xs'>
+      <div className='border-edge bg-panel/90 absolute top-3 right-3 z-[1000] flex gap-3 rounded border px-3 py-1.5 text-xs'>
         <span className={connected ? 'text-green-400' : 'text-slate-500'}>
           {connected ? '● live' : '○ disconnected'}
         </span>

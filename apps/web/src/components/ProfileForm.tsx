@@ -98,7 +98,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
     <>
       <form
         onSubmit={onSubmit}
-        className='max-w-lg space-y-4 rounded-lg border border-edge bg-panel p-6'
+        className='border-edge bg-panel max-w-lg space-y-4 rounded-lg border p-6'
       >
         <div>
           <span className='mb-1 block text-xs tracking-wide text-slate-500 uppercase'>
@@ -109,12 +109,12 @@ export function ProfileForm({ initial }: { initial: Profile }) {
               <img
                 src={photo}
                 alt='Your profile photo'
-                className='size-16 shrink-0 rounded-full border border-edge object-cover'
+                className='border-edge size-16 shrink-0 rounded-full border object-cover'
               />
             ) : (
               <span
                 aria-hidden='true'
-                className='flex size-16 shrink-0 items-center justify-center rounded-full border border-edge bg-ink text-slate-500'
+                className='border-edge bg-ink flex size-16 shrink-0 items-center justify-center rounded-full border text-slate-500'
               >
                 <UserRound className='size-7' />
               </span>
@@ -138,7 +138,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
                 type='button'
                 disabled={photoBusy !== null}
                 onClick={() => fileInput.current?.click()}
-                className='rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-accent disabled:opacity-50'
+                className='border-edge hover:border-accent rounded border px-3 py-2 text-sm font-semibold text-slate-200 disabled:opacity-50'
               >
                 {photoBusy === 'upload'
                   ? 'Uploading…'
@@ -151,7 +151,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
                   type='button'
                   disabled={photoBusy !== null}
                   onClick={() => void changePhoto('remove')}
-                  className='rounded border border-edge px-3 py-2 text-sm font-semibold text-slate-200 hover:border-red-400 disabled:opacity-50'
+                  className='border-edge rounded border px-3 py-2 text-sm font-semibold text-slate-200 hover:border-red-400 disabled:opacity-50'
                 >
                   {photoBusy === 'remove' ? 'Removing…' : 'Remove'}
                 </button>
@@ -186,7 +186,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required
-            className='w-full rounded border border-edge bg-ink px-3 py-2 outline-none focus:border-accent'
+            className='border-edge bg-ink focus:border-accent w-full rounded border px-3 py-2 outline-none'
           />
           <p className='mt-1 text-xs text-slate-500'>
             Shown on driver cards, On the road, and the live map.
@@ -206,7 +206,7 @@ export function ProfileForm({ initial }: { initial: Profile }) {
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             required
-            className='w-full rounded border border-edge bg-ink px-3 py-2 font-mono outline-none focus:border-accent'
+            className='border-edge bg-ink focus:border-accent w-full rounded border px-3 py-2 font-mono outline-none'
           />
           <p className='mt-1 text-xs text-slate-500'>
             URL slug. Your driver page is at <code>/u/{slug || '…'}</code>.
@@ -219,13 +219,13 @@ export function ProfileForm({ initial }: { initial: Profile }) {
         <button
           type='submit'
           disabled={busy || !displayName.trim() || !slug.trim()}
-          className='rounded bg-accent px-4 py-2 font-semibold text-ink disabled:opacity-50'
+          className='bg-accent text-ink rounded px-4 py-2 font-semibold disabled:opacity-50'
         >
           {busy ? 'Saving…' : 'Save'}
         </button>
       </form>
 
-      <section className='mt-6 max-w-lg space-y-3 rounded-lg border border-edge bg-panel p-6'>
+      <section className='border-edge bg-panel mt-6 max-w-lg space-y-3 rounded-lg border p-6'>
         <div>
           <h2 className='text-lg font-bold'>Units</h2>
           <p className='mt-1 text-xs text-slate-500'>

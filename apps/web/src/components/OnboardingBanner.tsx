@@ -1,8 +1,8 @@
 export function OnboardingBanner() {
   return (
-    <section className='space-y-4 rounded-lg border border-accent/30 bg-accent/5 p-6'>
+    <section className='border-accent/30 bg-accent/5 space-y-4 rounded-lg border p-6'>
       <div>
-        <h2 className='text-lg font-bold text-accent'>
+        <h2 className='text-accent text-lg font-bold'>
           Welcome — let&apos;s get you on the road
         </h2>
         <p className='mt-1 text-sm text-slate-300'>
@@ -15,7 +15,7 @@ export function OnboardingBanner() {
         <li>
           Install{' '}
           <a
-            className='underline hover:text-accent'
+            className='hover:text-accent underline'
             href='https://github.com/RenCloud/scs-sdk-plugin/releases'
             target='_blank'
             rel='noreferrer'
@@ -33,7 +33,7 @@ export function OnboardingBanner() {
         <li>
           Download the latest{' '}
           <a
-            className='underline hover:text-accent'
+            className='hover:text-accent underline'
             href='https://github.com/kylescudder/cabmate/releases/'
             target='_blank'
             rel='noreferrer'
@@ -57,7 +57,7 @@ export function OnboardingBanner() {
           <span className='font-semibold'>Launch Options</span> and paste
           (replace <code className='text-xs'>&lt;your-username&gt;</code> with
           your Windows account name):
-          <pre className='mt-2 overflow-x-auto rounded border border-edge bg-ink px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
+          <pre className='border-edge bg-ink mt-2 overflow-x-auto rounded border px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
             {`"C:\\Users\\<your-username>\\.ets2-tracker\\ets2-tracker.exe" %command% -developer -console`}
           </pre>
           Steam launches the agent and the game together every time you hit{' '}
@@ -78,7 +78,7 @@ export function OnboardingBanner() {
           <code className='text-xs'>bin\win_x64\plugins</code> folder, and
           install{' '}
           <a
-            className='underline hover:text-accent'
+            className='hover:text-accent underline'
             href='https://github.com/srounce/winecarte'
             target='_blank'
             rel='noreferrer'
@@ -93,12 +93,12 @@ export function OnboardingBanner() {
           <code className='text-xs'>chmod +x ~/.ets2-tracker/ets2-tracker</code>
           , then use these launch options:
         </p>
-        <pre className='overflow-x-auto rounded border border-edge bg-ink px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
+        <pre className='border-edge bg-ink overflow-x-auto rounded border px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
           {`~/.ets2-tracker/ets2-tracker ~/.local/bin/winecarte-run %command% -developer -console`}
         </pre>
       </div>
 
-      <p className='border-t border-edge pt-2 text-xs text-slate-500'>
+      <p className='border-edge border-t pt-2 text-xs text-slate-500'>
         This panel disappears once your first driving session arrives.
       </p>
     </section>

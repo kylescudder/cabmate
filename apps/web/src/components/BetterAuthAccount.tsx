@@ -78,7 +78,7 @@ function Account() {
         type='button'
         disabled={signingOut}
         onClick={() => void signOut()}
-        className='rounded border border-edge px-4 py-2 font-semibold text-slate-200 hover:border-accent disabled:opacity-50'
+        className='border-edge hover:border-accent rounded border px-4 py-2 font-semibold text-slate-200 disabled:opacity-50'
       >
         {signingOut ? 'Signing out…' : 'Sign out'}
       </button>

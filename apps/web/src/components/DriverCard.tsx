@@ -21,7 +21,7 @@ export function DriverCard({ d }: { d: DriverRow }) {
     <Link
       to='/u/$name'
       params={{ name: d.name }}
-      className='block rounded-lg border border-edge bg-panel p-5 transition hover:border-accent'
+      className='border-edge bg-panel hover:border-accent block rounded-lg border p-5 transition'
     >
       <div className='mb-3 flex items-center gap-3'>
         {d.avatarUrl ? (
@@ -29,10 +29,10 @@ export function DriverCard({ d }: { d: DriverRow }) {
           <img
             src={d.avatarUrl}
             alt=''
-            className='h-10 w-10 rounded-full bg-edge'
+            className='bg-edge h-10 w-10 rounded-full'
           />
         ) : (
-          <div className='h-10 w-10 rounded-full bg-edge' />
+          <div className='bg-edge h-10 w-10 rounded-full' />
         )}
         <div className='flex-1'>
           <div className='font-semibold'>{d.displayName}</div>
@@ -66,23 +66,23 @@ export function DriverCard({ d }: { d: DriverRow }) {
           <span>Fuel</span>
           <span>{fuelPct != null ? `${fuelPct}%` : '—'}</span>
         </div>
-        <div className='h-1.5 overflow-hidden rounded-full bg-edge'>
+        <div className='bg-edge h-1.5 overflow-hidden rounded-full'>
           <div
-            className='h-full bg-accent'
+            className='bg-accent h-full'
             style={{ width: `${fuelPct ?? 0}%` }}
           />
         </div>
       </div>
 
       {d.job ? (
-        <div className='border-t border-edge pt-3 text-xs text-slate-300'>
+        <div className='border-edge border-t pt-3 text-xs text-slate-300'>
           <div className='font-medium text-slate-100'>{d.job.cargo}</div>
           <div className='text-slate-400'>
             {d.job.sourceCity} → {d.job.destinationCity}
           </div>
         </div>
       ) : (
-        <div className='border-t border-edge pt-3 text-xs text-slate-500'>
+        <div className='border-edge border-t pt-3 text-xs text-slate-500'>
           no active job
         </div>
       )}

@@ -30,7 +30,7 @@ export function RecentTelemetryTable({ rows }: { rows: RecentRow[] }) {
       </thead>
       <tbody>
         {rows.slice(0, 30).map((r, i) => (
-          <tr key={`${r.time}-${i}`} className='border-t border-edge'>
+          <tr key={`${r.time}-${i}`} className='border-edge border-t'>
             <td className='px-4 py-2 font-mono text-xs'>
               {new Date(r.time).toLocaleString()}
             </td>

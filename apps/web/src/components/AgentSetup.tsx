@@ -64,7 +64,7 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
   const masked = key.slice(0, 4) + '…'.repeat(8) + key.slice(-4)
 
   return (
-    <section className='max-w-lg space-y-4 rounded-lg border border-edge bg-panel p-6'>
+    <section className='border-edge bg-panel max-w-lg space-y-4 rounded-lg border p-6'>
       <div>
         <h2 className='text-lg font-bold'>Connect your game</h2>
         <p className='mt-1 text-xs text-slate-500'>
@@ -79,13 +79,13 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
 
       <a
         href={AGENT_DOWNLOAD_URL}
-        className='inline-flex items-center justify-center rounded bg-accent px-4 py-2 font-semibold text-ink hover:brightness-110'
+        className='bg-accent text-ink inline-flex items-center justify-center rounded px-4 py-2 font-semibold hover:brightness-110'
       >
         Download ets2-tracker.exe
       </a>
       <a
         href={LINUX_AGENT_DOWNLOAD_URL}
-        className='ml-2 inline-flex items-center justify-center rounded border border-edge bg-ink px-4 py-2 text-sm hover:border-accent'
+        className='border-edge bg-ink hover:border-accent ml-2 inline-flex items-center justify-center rounded border px-4 py-2 text-sm'
       >
         Linux (Proton)
       </a>
@@ -99,19 +99,19 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
             type='text'
             readOnly
             value={reveal ? key : masked}
-            className='flex-1 rounded border border-edge bg-ink px-3 py-2 font-mono text-sm outline-none'
+            className='border-edge bg-ink flex-1 rounded border px-3 py-2 font-mono text-sm outline-none'
           />
           <button
             type='button'
             onClick={() => setReveal((r) => !r)}
-            className='rounded border border-edge bg-ink px-3 py-2 text-sm hover:border-accent'
+            className='border-edge bg-ink hover:border-accent rounded border px-3 py-2 text-sm'
           >
             {reveal ? 'Hide' : 'Show'}
           </button>
           <button
             type='button'
             onClick={() => copy(key, 'key')}
-            className='rounded border border-edge bg-ink px-3 py-2 text-sm hover:border-accent'
+            className='border-edge bg-ink hover:border-accent rounded border px-3 py-2 text-sm'
           >
             {copied === 'key' ? 'Copied' : 'Copy'}
           </button>
@@ -122,13 +122,13 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
         <label className='mb-1 block text-xs tracking-wide text-slate-500 uppercase'>
           config.json
         </label>
-        <pre className='overflow-x-auto rounded border border-edge bg-ink px-3 py-2 font-mono text-xs'>
+        <pre className='border-edge bg-ink overflow-x-auto rounded border px-3 py-2 font-mono text-xs'>
           {configSnippet}
         </pre>
         <button
           type='button'
           onClick={() => copy(configSnippet, 'config')}
-          className='mt-2 rounded border border-edge bg-ink px-3 py-1.5 text-sm hover:border-accent'
+          className='border-edge bg-ink hover:border-accent mt-2 rounded border px-3 py-1.5 text-sm'
         >
           {copied === 'config' ? 'Copied' : 'Copy snippet'}
         </button>
@@ -136,7 +136,7 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
 
       {err && <div className='text-sm text-red-400'>{err}</div>}
 
-      <div className='flex items-center justify-between border-t border-edge pt-2'>
+      <div className='border-edge flex items-center justify-between border-t pt-2'>
         <p className='text-xs text-slate-500'>
           Rotate this key if you suspect it leaked.
         </p>

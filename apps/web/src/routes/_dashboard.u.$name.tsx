@@ -62,7 +62,7 @@ function DriverPage() {
   const maxMonth = Math.max(1, ...months.map(([, km]) => km))
   return (
     <div>
-      <Link to='/' className='text-sm text-slate-400 hover:text-accent'>
+      <Link to='/' className='hover:text-accent text-sm text-slate-400'>
         ← back
       </Link>
       <h1 className='mt-2 mb-6 text-2xl font-bold'>{data.user.display_name}</h1>
@@ -70,7 +70,7 @@ function DriverPage() {
         <h2 className='mb-3 text-sm tracking-wide text-slate-500 uppercase'>
           Last 14 days
         </h2>
-        <div className='rounded-lg border border-edge bg-panel p-5'>
+        <div className='border-edge bg-panel rounded-lg border p-5'>
           <div className='font-mono text-3xl'>
             <Distance
               km={recentDays.reduce((sum, r) => sum + r.distance_km, 0)}
@@ -81,7 +81,7 @@ function DriverPage() {
               {recentDays.slice(-14).map((r) => (
                 <div key={r.bucket} className='flex flex-col items-center'>
                   <div
-                    className='w-full rounded bg-accent/30'
+                    className='bg-accent/30 w-full rounded'
                     style={{
                       height: Math.min(60, Math.max(2, r.distance_km / 4))
                     }}
@@ -111,7 +111,7 @@ function DriverPage() {
               year: 'numeric'
             })}
           </h2>
-          <div className='rounded-lg border border-edge bg-panel p-5'>
+          <div className='border-edge bg-panel rounded-lg border p-5'>
             <dl className='grid grid-cols-2 gap-4 sm:grid-cols-4'>
               <Stat label='Distance'>
                 <Distance km={totalKm} />
@@ -130,7 +130,7 @@ function DriverPage() {
                   title={`${month}: ${Math.round(km)} km`}
                 >
                   <div
-                    className='w-full rounded bg-accent/30'
+                    className='bg-accent/30 w-full rounded'
                     style={{ height: `${Math.max(2, (km / maxMonth) * 100)}%` }}
                   />
                   <span className='mt-1 text-[10px] text-slate-500'>
@@ -149,7 +149,7 @@ function DriverPage() {
         <h2 className='mb-3 text-sm tracking-wide text-slate-500 uppercase'>
           Recent driving
         </h2>
-        <div className='overflow-x-auto rounded-lg border border-edge bg-panel'>
+        <div className='border-edge bg-panel overflow-x-auto rounded-lg border'>
           <RecentTelemetryTable rows={data.recent} />
         </div>
       </section>
