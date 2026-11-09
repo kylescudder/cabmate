@@ -34,6 +34,8 @@ jobs:
 
       - name: Install workspace deps
         run: bun install --frozen-lockfile
+        env:
+          HUSKY: '0'
 
       - name: Compile ${{ matrix.file }}
         run: bun run --filter @ets2/client ${{ matrix.script }}

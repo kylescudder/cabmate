@@ -1,0 +1,18 @@
+node_modules
+dist
+coverage
+bun.lock
+deploy/projects
+deploy/secrets
+# Broadcaster has its own Prettier config, lockfile and CI check
+services/radio-max
+# Generated, vendored and test output
+.output
+.tanstack
+.artifacts
+apps/web/src/routeTree.gen.ts
+apps/web/drizzle/meta
+apps/web/public/ets2-map
+THIRD_PARTY_NOTICES.md
+test-results
+playwright-report
