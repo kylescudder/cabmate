@@ -33,7 +33,7 @@ function sample(second: number, odometerKm: number) {
 }
 function post(apiKey: string, body: unknown, path = '/api/ingest') {
   return anonymous(
-    new Request(`http://ets2.test${path}`, {
+    new Request(`http://cabmate.test${path}`, {
       method: 'POST',
       headers: {
         authorization: `Bearer ${apiKey}`,
@@ -90,14 +90,6 @@ describe('telemetry ingest', () => {
     })
   })
 
-  test('accepts the legacy Supabase function path used by installed agents', async () => {
-    expect(
-      await (
-        await post('key-mike', payload(randomUUID()), '/functions/v1/ingest')
-      ).json()
-    ).toEqual({ ok: true, inserted: 2 })
-  })
-
   test('refuses samples for a session owned by another driver', async () => {
     const sessionId = randomUUID()
     await post('key-mike', payload(sessionId))
@@ -112,7 +104,7 @@ describe('telemetry ingest', () => {
       payload(randomUUID(), [sample(58, 1000), sample(59, 1000.5)])
     )
     const get = (path: string) =>
-      signedIn(new Request(`http://ets2.test${path}`)).then((r) => r.json())
+      signedIn(new Request(`http://cabmate.test${path}`)).then((r) => r.json())
     const drivers = (await get('/api/drivers')) as {
       name: string
       status: string
@@ -128,7 +120,7 @@ describe('telemetry ingest', () => {
 
   test('read endpoints require a signed-in user', async () => {
     expect(
-      (await anonymous(new Request('http://ets2.test/api/drivers'))).status
+      (await anonymous(new Request('http://cabmate.test/api/drivers'))).status
     ).toBe(401)
   })
 })

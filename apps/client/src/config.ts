@@ -16,7 +16,7 @@ const TEMPLATE = {
 }
 
 export function loadConfig(): ClientConfig {
-  const configDir = join(homedir(), '.ets2-tracker')
+  const configDir = join(homedir(), '.cabmate')
   const configPath = join(configDir, 'config.json')
 
   // Read first and create the template only if the file is missing, rather than
@@ -42,12 +42,8 @@ export function loadConfig(): ClientConfig {
     process.exit(1)
   }
 
-  const raw = JSON.parse(text) as Partial<ClientConfig> & {
-    apiUrl?: string
-  }
-  // Back-compat: earlier template used `apiUrl` with an implicit `/api/ingest` suffix.
-  const ingestUrl =
-    raw.ingestUrl ?? (raw.apiUrl ? `${raw.apiUrl}/api/ingest` : undefined)
+  const raw = JSON.parse(text) as Partial<ClientConfig>
+  const ingestUrl = raw.ingestUrl
   if (!ingestUrl || !raw.apiKey) {
     throw new Error(`${configPath} is missing ingestUrl or apiKey`)
   }

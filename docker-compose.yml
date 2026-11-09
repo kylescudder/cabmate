@@ -1,18 +1,18 @@
 # Disposable local development database only. Herman uses shared platform PostgreSQL.
-name: ets2-development
+name: cabmate-development
 services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_USER: ets2
-      POSTGRES_PASSWORD: ets2
-      POSTGRES_DB: ets2
+      POSTGRES_USER: cabmate
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: cabmate
     ports: ['127.0.0.1:5439:5432']
-    volumes: [ets2_pg:/var/lib/postgresql/data]
+    volumes: [cabmate_pg:/var/lib/postgresql/data]
     healthcheck:
-      test: [CMD-SHELL, 'pg_isready -U ets2']
+      test: [CMD-SHELL, 'pg_isready -U cabmate']
       interval: 5s
       timeout: 5s
       retries: 10
 volumes:
-  ets2_pg:
+  cabmate_pg:

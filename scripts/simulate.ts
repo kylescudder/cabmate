@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { IngestPayload } from '@ets2/shared'
+import { IngestPayload } from '@cabmate/shared'
 const url = process.env.INGEST_URL || 'http://localhost:3000/api/ingest'
 const apiKey = process.env.AGENT_API_KEY
 if (!apiKey)

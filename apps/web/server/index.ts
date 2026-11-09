@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm'
 import { healthResponse } from './health'
 import { authorizeSocket, liveSocket, startLive, type SocketData } from './live'
 
-const revision = process.env.ETS2_REVISION || 'development'
+const revision = process.env.CABMATE_REVISION || 'development'
 const directory = join(import.meta.dir, '../dist/client')
 const entry = '../dist/server/server.js'
 const { default: app } = (await import(entry)) as {
@@ -48,8 +48,8 @@ const server = Bun.serve<SocketData>({
       }
     }
     response ??= await app.fetch(request)
-    response.headers.set('X-ETS2-Revision', revision)
+    response.headers.set('X-Cabmate-Revision', revision)
     return response
   }
 })
-console.log(`ETS2 ${revision} listening on ${server.port}`)
+console.log(`Cabmate ${revision} listening on ${server.port}`)

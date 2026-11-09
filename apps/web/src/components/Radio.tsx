@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
-import type { RadioState, RadioStation } from '@ets2/shared'
+import type { RadioState, RadioStation } from '@cabmate/shared'
 
 export function Radio() {
   const query = useQuery({

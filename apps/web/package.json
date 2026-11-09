@@ -1,5 +1,5 @@
 {
-  "name": "@ets2/web",
+  "name": "@cabmate/web",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -9,8 +9,7 @@
     "start": "bun server/index.ts",
     "typecheck": "tsc --noEmit",
     "db:generate": "bunx --no-install drizzle-kit generate",
-    "db:migrate": "bun server/migrate.ts",
-    "db:import": "bun server/import-legacy.ts"
+    "db:migrate": "bun server/migrate.ts"
   },
   "dependencies": {
     "@base-ui/react": "1.9.0",
@@ -18,7 +17,7 @@
     "@better-auth-ui/react": "1.7.33",
     "@better-auth/drizzle-adapter": "1.7.18",
     "@better-auth/passkey": "1.7.18",
-    "@ets2/shared": "workspace:*",
+    "@cabmate/shared": "workspace:*",
     "@t3-oss/env-core": "0.13.11",
     "@tanstack/react-form": "1.33.5",
     "@tanstack/react-query": "^5.90.21",

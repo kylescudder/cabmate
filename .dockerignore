@@ -6,7 +6,6 @@ node_modules
 .env*
 !.env.example
 .artifacts
-supabase
 deploy/projects
 deploy/secrets
 

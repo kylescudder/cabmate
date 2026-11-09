@@ -8,9 +8,9 @@ interface AgentSetupProps {
 }
 
 const AGENT_DOWNLOAD_URL =
-  'https://github.com/kylescudder/cabmate/releases/latest/download/ets2-tracker.exe'
+  'https://github.com/kylescudder/cabmate/releases/latest/download/cabmate-agent.exe'
 const LINUX_AGENT_DOWNLOAD_URL =
-  'https://github.com/kylescudder/cabmate/releases/latest/download/ets2-tracker'
+  'https://github.com/kylescudder/cabmate/releases/latest/download/cabmate-agent'
 
 export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
   const queries = useQueryClient()
@@ -70,10 +70,10 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
         <p className='mt-1 text-xs text-slate-500'>
           The Windows companion uses this key to connect your game to Cabmate.
           Download the .exe, drop the config snippet into
-          <code className='mx-1'>%USERPROFILE%\.ets2-tracker\config.json</code>,
-          then double-click the .exe with ETS2 running. Playing on Linux with
-          Proton? Use the Linux build and
-          <code className='mx-1'>~/.ets2-tracker/config.json</code> instead.
+          <code className='mx-1'>%USERPROFILE%\.cabmate\config.json</code>, then
+          double-click the .exe with ETS2 running. Playing on Linux with Proton?
+          Use the Linux build and
+          <code className='mx-1'>~/.cabmate/config.json</code> instead.
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export function AgentSetup({ userId, apiKey }: AgentSetupProps) {
         href={AGENT_DOWNLOAD_URL}
         className='bg-accent text-ink inline-flex items-center justify-center rounded px-4 py-2 font-semibold hover:brightness-110'
       >
-        Download ets2-tracker.exe
+        Download cabmate-agent.exe
       </a>
       <a
         href={LINUX_AGENT_DOWNLOAD_URL}

@@ -1,16 +1,16 @@
 # Deploy webhook receiver for the host. Install as
-# /Users/kyle/platform/apps/ets2-data-dashboard/deploy/compose.deploy-hook.yaml and run:
+# /Users/kyle/platform/apps/cabmate/deploy/compose.deploy-hook.yaml and run:
 #   docker compose -f deploy/compose.deploy-hook.yaml --env-file .env.deploy-hook up -d
 # It has no Docker socket and no database access; it only writes signed
 # requests into the spool directory consumed by deploy-core, and reads the host's
 # completed-release acknowledgement from a read-only mount.
-name: ets2-data-dashboard-deploy-hook
+name: cabmate-deploy-hook
 
 services:
   deploy-hook:
     image: ${DEPLOY_RECEIVER_IMAGE:?set DEPLOY_RECEIVER_IMAGE to the verified local receiver image ID}
     pull_policy: never
-    command: ['/opt/deploy-receivers/ets2-data-dashboard/server.mjs']
+    command: ['/opt/deploy-receivers/cabmate/server.mjs']
     restart: unless-stopped
     user: '${DEPLOY_HOOK_USER:?set DEPLOY_HOOK_USER to the queue owner uid:gid}'
     environment:
@@ -25,7 +25,7 @@ services:
       - deploy_webhook_secret
     networks:
       web:
-        aliases: [ets2-data-dashboard-deploy-hook]
+        aliases: [cabmate-deploy-hook]
     read_only: true
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]

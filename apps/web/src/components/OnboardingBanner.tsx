@@ -38,14 +38,14 @@ export function OnboardingBanner() {
             target='_blank'
             rel='noreferrer'
           >
-            <code className='text-xs'>ets2-tracker.exe</code> release
+            <code className='text-xs'>cabmate-agent.exe</code> release
           </a>
           .
         </li>
         <li>
           Create the folder{' '}
-          <code className='text-xs'>%USERPROFILE%\.ets2-tracker\</code> and drop
-          both the <code className='text-xs'>ets2-tracker.exe</code> and a{' '}
+          <code className='text-xs'>%USERPROFILE%\.cabmate\</code> and drop both
+          the <code className='text-xs'>cabmate-agent.exe</code> and a{' '}
           <code className='text-xs'>config.json</code> file (use the snippet
           below) into it.
         </li>
@@ -58,7 +58,7 @@ export function OnboardingBanner() {
           (replace <code className='text-xs'>&lt;your-username&gt;</code> with
           your Windows account name):
           <pre className='border-edge bg-ink mt-2 overflow-x-auto rounded border px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
-            {`"C:\\Users\\<your-username>\\.ets2-tracker\\ets2-tracker.exe" %command% -developer -console`}
+            {`"C:\\Users\\<your-username>\\.cabmate\\cabmate-agent.exe" %command% -developer -console`}
           </pre>
           Steam launches the agent and the game together every time you hit{' '}
           <span className='font-semibold'>Play</span>. The{' '}
@@ -87,14 +87,14 @@ export function OnboardingBanner() {
           </a>{' '}
           into <code className='text-xs'>~/.local/bin/</code> so the telemetry
           shows up in <code className='text-xs'>/dev/shm</code>. Put the Linux{' '}
-          <code className='text-xs'>ets2-tracker</code> build and{' '}
+          <code className='text-xs'>cabmate-agent</code> build and{' '}
           <code className='text-xs'>config.json</code> in{' '}
-          <code className='text-xs'>~/.ets2-tracker/</code>, run{' '}
-          <code className='text-xs'>chmod +x ~/.ets2-tracker/ets2-tracker</code>
-          , then use these launch options:
+          <code className='text-xs'>~/.cabmate/</code>, run{' '}
+          <code className='text-xs'>chmod +x ~/.cabmate/cabmate-agent</code>,
+          then use these launch options:
         </p>
         <pre className='border-edge bg-ink overflow-x-auto rounded border px-3 py-2 font-mono text-xs whitespace-pre-wrap'>
-          {`~/.ets2-tracker/ets2-tracker ~/.local/bin/winecarte-run %command% -developer -console`}
+          {`~/.cabmate/cabmate-agent ~/.local/bin/winecarte-run %command% -developer -console`}
         </pre>
       </div>
 

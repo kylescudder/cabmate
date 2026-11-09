@@ -131,9 +131,7 @@ test('driving routes and APIs remain protected, and both ingestion paths reject 
   ]) {
     expect((await request.get(path)).status()).toBe(401)
   }
-  for (const path of ['/api/ingest', '/functions/v1/ingest']) {
-    expect((await request.post(path, { data: {} })).status()).toBe(401)
-  }
+  expect((await request.post('/api/ingest', { data: {} })).status()).toBe(401)
   expect((await request.post('/api/radio/state', { data: {} })).status()).toBe(
     405
   )

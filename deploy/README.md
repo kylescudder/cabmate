@@ -1,13 +1,8 @@
 # Deploying to Herman
 
-Cabmate is served at `https://cabmate.kylescudder.co.uk`. Internal names
-(`ets2-data-dashboard` image, service and app directory) are unchanged, and
-`ets2.kylescudder.co.uk` still proxies to the same container so installed
-agents' ingest paths, `/healthz` and `/ws` keep working there. While old pages
-may still be open, `LEGACY_APP_ORIGIN=https://ets2.kylescudder.co.uk` keeps
-their origin checks passing.
+Cabmate is served at `https://cabmate.kylescudder.co.uk`.
 
-ETS2 follows the house deployment model in `deploy-core`: GitHub Actions builds
+Cabmate follows the house deployment model in `deploy-core`: GitHub Actions builds
 and attests a multi-arch image for every commit on `main`, and Herman's
 deploy service pulls the release **by digest**, runs the app hooks, and swaps
 the container. There is no build on the host, no published host port, and the
@@ -16,7 +11,7 @@ database is the shared platform PostgreSQL.
 ```
 push to main ─► CI (migrate + tests + build + typecheck)
              ─► release.yml: amd64/arm64 images ─► manifest ─► provenance attestation
-             ─► ghcr.io/kylescudder/ets2-data-dashboard@sha256:…
+             ─► ghcr.io/kylescudder/cabmate@sha256:…
 Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime grants)
                           ─► compose up (read-only, cap_drop ALL, platform-web/platform-db)
                           ─► health (healthcheck.ts) ─► accept (verify.ts) ─► or roll back
@@ -24,12 +19,12 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
 
 ## Files in this repo
 
-| File                              | Goes to                                                                                                       |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `compose.yaml`                    | `/Users/kyle/platform/apps/ets2-data-dashboard/compose.yaml`                                                  |
-| `deploy/hooks.py`                 | `deploy-core/app_hooks/ets2-data-dashboard/hooks.py` (tested service release)                                 |
-| `deploy/registry-entry.json`      | entry in `deploy-core/config/herman.json` and the installed `apps.json` (starts `enabled: false`)             |
-| `deploy/compose.deploy-hook.yaml` | `/Users/kyle/platform/apps/ets2-data-dashboard/deploy/compose.deploy-hook.yaml` (queue-only webhook receiver) |
+| File                              | Goes to                                                                                           |
+| --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `compose.yaml`                    | `/Users/kyle/platform/apps/cabmate/compose.yaml`                                                  |
+| `deploy/hooks.py`                 | `deploy-core/app_hooks/cabmate/hooks.py` (tested service release)                                 |
+| `deploy/registry-entry.json`      | entry in `deploy-core/config/herman.json` and the installed `apps.json` (starts `enabled: false`) |
+| `deploy/compose.deploy-hook.yaml` | `/Users/kyle/platform/apps/cabmate/deploy/compose.deploy-hook.yaml` (queue-only webhook receiver) |
 
 ## One-time setup
 
@@ -50,7 +45,7 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    alter schema public owner to cabmate_owner;
    ```
 
-2. **App directory** `/Users/kyle/platform/apps/ets2-data-dashboard/` (mode 0700)
+2. **App directory** `/Users/kyle/platform/apps/cabmate/` (mode 0700)
    containing `compose.yaml` and a protected `app.env` (0600, loaded through
    `env_file: app.env`):
 
@@ -71,13 +66,8 @@ Herman deploy-core worker ─► prepare (pg dump + owner migration + runtime gr
    image layers and CI. Variables the app does not use are ignored. Changing
    `app.env` takes effect when the `web` container is recreated.
 
-3. **Routing**: point `cabmate.kylescudder.co.uk`, and `ets2.kylescudder.co.uk`
-   for installed agents, at the `ets2-data-dashboard` alias on `platform-web`,
-   port 3000. Do not route the old Supabase host
-   `api.ets2.kylescudder.co.uk`: it is a two-level subdomain, which Cloudflare's
-   Universal SSL does not cover, so it cannot serve TLS. Already-installed
-   agents must have `ingestUrl` changed to the main hostname (see below).
-   Ingest paths must be reachable without Access/SSO because
+3. **Routing**: point `cabmate.kylescudder.co.uk` at the `cabmate` alias on
+   `platform-web`, port 3000. Ingest paths must be reachable without Access/SSO because
    the Windows agent authenticates with its own bearer API key.
    The dashboard's live view uses a WebSocket at `/ws` on the main hostname, so
    the proxy must pass `Upgrade` through (keep it behind the same edge policy as
@@ -192,14 +182,14 @@ maximum lifetime are intentionally disabled by the driver so LISTEN stays open.
 
 For **one web process**, the eight-slot `cabmate_runtime` role allowance is:
 
-| Consumer                                         | Maximum connections |
-| ------------------------------------------------ | ------------------: |
-| Application queries (shared singleton)           |                   3 |
-| LISTEN (owned by that same Postgres.js client)   |                   1 |
-| `/healthz` (separate lazy singleton)             |                   1 |
-| One runtime CLI job: rollup **or** legacy import |                   1 |
-| Operator headroom                                |                   2 |
-| Total                                            |                   8 |
+| Consumer                                       | Maximum connections |
+| ---------------------------------------------- | ------------------: |
+| Application queries (shared singleton)         |                   3 |
+| LISTEN (owned by that same Postgres.js client) |                   1 |
+| `/healthz` (separate lazy singleton)           |                   1 |
+| One runtime CLI job (rollup)                   |                   1 |
+| Operator headroom                              |                   2 |
+| Total                                          |                   8 |
 
 The application allowance is four **including** LISTEN. Query concurrency drops
 from four to three; excess work queues. This is the smallest change that allows
@@ -220,7 +210,7 @@ are occupied. An isolated probe does not measure application queue latency.
 
 This budget requires one running web process and at most one concurrent runtime
 job. Two web processes can use ten slots before CLI/operator work; stop the old
-process before starting the replacement, and serialize import/rollup/manual jobs.
+process before starting the replacement, and serialize rollup and manual jobs.
 Do not treat rolling overlap or replicas as covered by this budget. Operator
 sessions and transient PostgreSQL cancellation sockets consume the spare slots;
 two spares are available capacity, not permanently reserved connections. Keep the
@@ -232,7 +222,7 @@ raise role limits to fit an overlapping rollout. These source settings and tests
 do not establish the installed host's current state. No host hook change is
 required for this connection patch: the CLI paths and invocation contract stay
 the same. The authoritative packaged hook is
-`deploy-core/app_hooks/ets2-data-dashboard/hooks.py`; `deploy/hooks.py` here is a
+`deploy-core/app_hooks/cabmate/hooks.py`; `deploy/hooks.py` here is a
 reference, and editing it alone never updates the installed deploy service.
 
 ### Disposable PostgreSQL verification
@@ -268,41 +258,20 @@ this suite separately against its disposable PostgreSQL 17 service.
 ## Automatic deploys
 
 Every push to `main` builds the image, then the `deploy` job in `release.yml` posts an HMAC-signed
-request for that digest to `https://deploy-ets2.kylescudder.co.uk/hooks/ets2-data-dashboard`, behind a
+request for that digest to `https://deploy-cabmate.kylescudder.co.uk/hooks/cabmate`, behind a
 Cloudflare Access service-token policy. The queue-only receiver (`deploy-receivers`, no Docker socket, no
 database) writes it to `deploy-spool/requests`; deploy-core then verifies the attestation, runs the hooks above and
 publishes `state/public/deployment.json`, which the workflow polls until the host reports that exact image and
-the site serves the commit in `X-ETS2-Revision`. The job runs in the main-only `production` environment
+the site serves the commit in `X-Cabmate-Revision`. The job runs in the main-only `production` environment
 (`CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET`, `DEPLOY_WEBHOOK_SECRET`) and only when the repository variable
-`DEPLOY_ENABLED` is `true`. `ETS2_BASE_URL` is `https://cabmate.kylescudder.co.uk`.
+`DEPLOY_ENABLED` is `true`. `CABMATE_BASE_URL` is `https://cabmate.kylescudder.co.uk`.
 
 A deploy can also be driven manually:
 
 ```sh
 python3 -B /Users/kyle/platform/deploy-core/current/deploy_service.py \
-  --config /Users/kyle/platform/deploy-core/apps.json worker ets2-data-dashboard sha256:<digest>
+  --config /Users/kyle/platform/deploy-core/apps.json worker cabmate sha256:<digest>
 ```
-
-## Moving data off the old Supabase stack
-
-This import predates Better Auth and is kept for reference only: production was
-moved in place and never needs it. The old Supabase `auth_user_id` is dropped on
-import, so imported drivers are not linked to a Better Auth account; each needs
-`users.auth_user_id` set by hand before first sign-in, or the driver gets a new,
-empty cab.
-
-1. Export a consistent read-only snapshot (contains agent API keys — keep it private):
-   `LEGACY_DATABASE_URL=postgres://… bun apps/web/server/export-legacy.ts /private/ets2-snapshot.json`
-2. For a fresh environment only, import into the **empty** `cabmate` database as the owner:
-   `DATABASE_URL=postgres://cabmate_owner@…/cabmate bun run db:import /private/ets2-snapshot.json`
-   Production data was renamed in place to `cabmate`; never re-import it.
-
-UUIDs and agent API keys are preserved, so friends' installed agents keep
-working once their `ingestUrl` in `%USERPROFILE%\.ets2-tracker\config.json` is
-changed from the old `https://api.ets2.kylescudder.co.uk/functions/v1/ingest` to
-`https://cabmate.kylescudder.co.uk/api/ingest` (the URL shown in the profile
-page's _Agent setup_ snippet). The old `/functions/v1/ingest` path is still
-served on the main hostname, so only the host has to change if you prefer.
 
 ## Retention
 

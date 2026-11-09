@@ -6,6 +6,8 @@ export default defineConfig({
   out: './drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ? databaseUrl() : 'postgres://localhost/ets2'
+    url: process.env.DATABASE_URL
+      ? databaseUrl()
+      : 'postgres://localhost/cabmate'
   }
 })

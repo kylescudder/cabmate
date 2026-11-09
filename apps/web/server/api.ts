@@ -133,10 +133,7 @@ export function createApi(
     const { pathname, origin } = new URL(request.url)
     try {
       if (pathname === '/api/radio/state') return await radioState(request)
-      if (
-        request.method === 'POST' &&
-        (pathname === '/api/ingest' || pathname === '/functions/v1/ingest')
-      ) {
+      if (request.method === 'POST' && pathname === '/api/ingest') {
         if (Number(request.headers.get('content-length') ?? 0) > 512_000)
           return Response.json({ error: 'Payload too large' }, { status: 413 })
         return await ingest(getDb(), request)

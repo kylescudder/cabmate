@@ -12,16 +12,16 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_USER: ets2
-          POSTGRES_PASSWORD: ets2
-          POSTGRES_DB: ets2_test
+          POSTGRES_USER: cabmate
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: cabmate_test
         ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready --health-interval 5s
           --health-timeout 5s --health-retries 10
     env:
-      TEST_DATABASE_URL: postgres://ets2:ets2@127.0.0.1:5432/ets2_test
-      DATABASE_URL: postgres://ets2:ets2@127.0.0.1:5432/ets2_test
+      TEST_DATABASE_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
+      DATABASE_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -36,7 +36,7 @@ jobs:
       - run: bun run test
       - run: bun run test:db-budget
         env:
-          BUDGET_TEST_ADMIN_URL: postgres://ets2:ets2@127.0.0.1:5432/ets2_test
+          BUDGET_TEST_ADMIN_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
       - run: bun run build
       - run: bun run typecheck
       - run: bunx --no-install playwright install --with-deps chromium

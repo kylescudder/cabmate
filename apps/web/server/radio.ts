@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { RADIO_STREAM_ORIGIN, type RadioState } from '@ets2/shared'
+import { RADIO_STREAM_ORIGIN, type RadioState } from '@cabmate/shared'
 
 const count = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER)
 const snapshot = z.object({

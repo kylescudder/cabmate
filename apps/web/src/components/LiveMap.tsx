@@ -34,7 +34,7 @@ function avatarIcon(d: DriverRow) {
   ">${url ? '' : initial}</div>`
   return L.divIcon({
     html,
-    className: 'ets2-avatar-marker',
+    className: 'cabmate-avatar-marker',
     iconSize: [40, 40],
     iconAnchor: [20, 20]
   })

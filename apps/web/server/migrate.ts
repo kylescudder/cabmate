@@ -25,7 +25,7 @@ try {
     })
     console.log('Runtime role grants applied')
   }
-  console.log('ETS2 schema is ready')
+  console.log('Cabmate schema is ready')
 } finally {
   await client.end()
 }
