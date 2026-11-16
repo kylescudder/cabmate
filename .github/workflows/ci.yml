@@ -39,14 +39,52 @@ jobs:
           BUDGET_TEST_ADMIN_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
       - run: bun run build
       - run: bun run typecheck
-      - run: bunx --no-install playwright install --with-deps chromium
-      - run: bun run test:e2e
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
-        if: always()
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cabmate
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: cabmate_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
+      DATABASE_URL: postgres://cabmate@127.0.0.1:5432/cabmate_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          name: cabmate-browser-evidence
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - name: Install dependencies
+        run: HUSKY=0 bun install --frozen-lockfile
+      - name: Migrate disposable database and build
+        run: bun run db:migrate && bun run build
+      - name: Install Chromium
+        run: bunx --no-install playwright install --with-deps chromium
+      - name: Run end-to-end tests
+        run: |
+          set -o pipefail
+          mkdir -p artifacts/e2e-ci
+          bun run test:e2e 2>&1 | tee artifacts/e2e-ci/run.log
+      - name: Save test reports and evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          include-hidden-files: true
+          name: e2e-evidence
+          retention-days: 7
           path: |
             .artifacts/companion-merge/*.png
             .artifacts/companion-merge/playwright-report/
             test-results/
-          retention-days: 7
+            artifacts/e2e-ci/
