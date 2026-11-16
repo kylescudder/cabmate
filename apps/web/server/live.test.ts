@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import { createApi } from './api'
-import { database, sqlClient } from './db'
+import { closeSharedConnection, database } from './db'
 import { authorizeSocket, liveSocket, startLive, type SocketData } from './live'
 import { users } from './schema'
 
@@ -81,7 +81,7 @@ beforeAll(async () => {
     .values({ name: 'lena', displayName: 'Lena', apiKey: 'key-live' })
   await startLive()
 })
-afterAll(() => sqlClient().end())
+afterAll(closeSharedConnection)
 
 describe('live driver socket', () => {
   test('a new socket gets current driver state, then a push for every ingested batch', async () => {

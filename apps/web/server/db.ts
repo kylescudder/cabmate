@@ -24,6 +24,14 @@ export function database() {
 export function sqlClient() {
   return (connection ??= connect()).client
 }
+// Ends the process-wide pool and clears it, so the next database() or sqlClient()
+// call opens a fresh one. Ending sqlClient() directly would break every later
+// caller in the same process (bun test runs many files in one process).
+export async function closeSharedConnection() {
+  const current = connection
+  connection = undefined
+  await current?.client.end({ timeout: 1 })
+}
 
 export function connectOneShot(url = databaseUrl()) {
   return createConnection(url, 1)
