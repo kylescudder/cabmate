@@ -30,4 +30,7 @@ COPY --chown=bun:bun server/audio ./audio
 COPY --chown=bun:bun deploy/verify.ts /app/deploy/verify.ts
 USER bun
 EXPOSE 8080
+# Health ownership: deploy/healthcheck.md at the repository root.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
+  CMD ["bun", "-e", "const r = await fetch('http://127.0.0.1:8080/healthz', { signal: AbortSignal.timeout(3000) }); if (!r.ok || (await r.json()).ok !== true) process.exit(1)"]
 CMD ["bun", "src/server.ts"]
