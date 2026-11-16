@@ -1,10 +1,14 @@
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import * as schema from './schema'
-import { databaseUrl } from './connection'
+import { CONNECT_TIMEOUT_SECONDS, databaseUrl } from './connection'
 
 function createConnection(url: string, max: 1 | 3) {
-  const client = postgres(url, { max, idle_timeout: 20, connect_timeout: 10 })
+  const client = postgres(url, {
+    max,
+    idle_timeout: 20,
+    connect_timeout: CONNECT_TIMEOUT_SECONDS
+  })
   return { db: drizzle(client, { schema }), client }
 }
 // Postgres.js LISTEN opens its own max-1 client outside this query pool.
@@ -30,6 +34,6 @@ export function healthClient() {
   return (probe ??= postgres(databaseUrl(), {
     max: 1,
     idle_timeout: 20,
-    connect_timeout: 10
+    connect_timeout: CONNECT_TIMEOUT_SECONDS
   }))
 }

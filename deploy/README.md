@@ -200,7 +200,13 @@ queueing after an approved rollout. Batch ingestion, transactions, live sockets,
 rollup serialization, auth and RadioMax contracts remain intact.
 
 Query, health, one-shot and owner-migration clients use `idle_timeout: 20` and
-`connect_timeout: 10` (seconds). CLI clients close in `finally`. Owner migrations
+`connect_timeout: 2` (seconds, `CONNECT_TIMEOUT_SECONDS` in
+`apps/web/server/connection.ts`). Postgres.js v4 retries a connection the server
+refuses for exceeding the role limit (`53300`) until `connect_timeout` passes,
+where v3 failed at once. With 2 seconds a refused connection fails after about
+three seconds (measured 2.3–3.2 s; 10 seconds gave about 20 s), so requests that
+hit a full budget error quickly instead of piling up; `bun run test:db-budget`
+asserts it stays under five seconds. CLI clients close in `finally`. Owner migrations
 are max 1 on the separate `cabmate_owner` role; they do not consume runtime slots.
 The runtime role gets public-table DML only, with no migration-schema access or
 DDL. `healthcheck.ts` and deployment acceptance use HTTP and open no additional
