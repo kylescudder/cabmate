@@ -13,6 +13,7 @@ import {
   type SocketData
 } from '../../apps/web/server/live'
 import { healthResponse } from '../../apps/web/server/health'
+import { CONNECT_TIMEOUT_SECONDS } from '../../apps/web/server/connection'
 import { createApi } from '../../apps/web/server/api'
 import { users } from '../../apps/web/server/schema'
 
@@ -167,9 +168,15 @@ test('the real rollup and health CLI leave two operator slots; a ninth runtime c
     Array.from({ length: 3 }, () => sqlClient().reserve())
   )
   const operators = Array.from({ length: 2 }, () =>
-    postgres(roleUrl(runtime), { max: 1, connect_timeout: 2 })
+    postgres(roleUrl(runtime), {
+      max: 1,
+      connect_timeout: CONNECT_TIMEOUT_SECONDS
+    })
   )
-  const excess = postgres(roleUrl(runtime), { max: 1, connect_timeout: 2 })
+  const excess = postgres(roleUrl(runtime), {
+    max: 1,
+    connect_timeout: CONNECT_TIMEOUT_SECONDS
+  })
   // Keep the real one-shot process open at its existing serialization lock.
   await observer`select pg_advisory_lock(64229001)`
   const rollup = command('rollup.ts')
@@ -194,7 +201,10 @@ test('the real rollup and health CLI leave two operator slots; a ninth runtime c
     const [{ count: total }] =
       await admin`select count(*)::int count from pg_stat_activity where usename = ${runtime}`
     expect(total).toBe(8)
+    // Postgres.js v4 retries 53300 until connect_timeout; the app's setting keeps it short.
+    const refusedAt = performance.now()
     await expect(excess`select 1`).rejects.toMatchObject({ code: '53300' })
+    expect(performance.now() - refusedAt).toBeLessThan(5000)
     // Health checks are HTTP clients; overlapping probes must reuse that same slot.
     const probes = await Promise.all(
       Array.from(
@@ -256,14 +266,20 @@ test('owner/runtime limits and private migration metadata remain enforced', asyn
     sqlClient()`create table budget_forbidden (id int)`
   ).rejects.toMatchObject({ code: '42501' })
   const ownerClient = postgres(roleUrl(owner), { max: 1 })
-  const excessOwner = postgres(roleUrl(owner), { max: 1 })
+  const excessOwner = postgres(roleUrl(owner), {
+    max: 1,
+    connect_timeout: CONNECT_TIMEOUT_SECONDS
+  })
   try {
     await ownerClient`select 1`
+    // Postgres.js v4 retries 53300 until connect_timeout; the app's setting keeps it short.
+    const refusedAt = performance.now()
     await expect(excessOwner`select 1`).rejects.toMatchObject({ code: '53300' })
+    expect(performance.now() - refusedAt).toBeLessThan(5000)
   } finally {
     await Promise.all([ownerClient.end(), excessOwner.end()])
   }
-})
+}, 10_000)
 
 test('health returns 503 when runtime table access is unavailable, then recovers', async () => {
   const ownerClient = postgres(roleUrl(owner), { max: 1 })

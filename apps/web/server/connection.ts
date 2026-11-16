@@ -12,3 +12,9 @@ export function databaseUrl(
     )
   return parsed.toString()
 }
+
+// Postgres.js v4 retries a connection the server refuses for too many
+// connections (53300) until connect_timeout passes, instead of failing at once.
+// Two seconds keeps that refusal to about three seconds, so requests fail
+// quickly and do not pile up when the role's connection limit is reached.
+export const CONNECT_TIMEOUT_SECONDS = 2
