@@ -2,7 +2,7 @@
   "name": "cabmate",
   "private": true,
   "version": "0.0.1",
-  "packageManager": "bun@1.4.4",
+  "packageManager": "bun@1.4.5",
   "workspaces": [
     "apps/*",
     "packages/*"
